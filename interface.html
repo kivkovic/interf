@@ -132,10 +132,10 @@
       if (postprocess) {
         response.appendChild(postprocess(out, cmd));
       } else if (error) {
-      	response.className = 'stderr';
-      	response.innerText = error;
+        response.className = 'stderr';
+        response.innerText = error;
       } else {
-      	response.className = 'stdout';
+        response.className = 'stdout';
         response.innerText = out;
       }
       terminal.appendChild(response);
