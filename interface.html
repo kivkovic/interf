@@ -146,8 +146,10 @@
     function open(location) {
       fetch('http://192.168.5.14:1337/typeof?path=' + encodeURIComponent(location.replace(/\/*$/, '')))
         .then(response => response.json().then(json => {
-        	console.log(json)
-          //appendResponse(json.out.files, null, formatFileList, 'ls -lhFa');
+          const matches = json.out.response.match(/^([^:]+): ([^/]+\/[^/]+);/);
+          handleFileOpen(json.out.pwd + '/' + matches[1], matches[2]);
+
+          //appendResponse(json.out.files, null, formatFileList, 'ls -lhFa'); // TODO restore this line if dir
         }))
         .catch(error => console.error(error));
     }
@@ -235,11 +237,11 @@
               createNewLine('password');
 
             } else if (input.innerText.match(/^\s*clear\s*$/)) {
-            	const { clone, input } = createNewLine();
-            	Array.from(terminal.children).map(child => {
-            		if (child != clone && child != input) terminal.removeChild(child);
-            	});
-            	disabled = false;
+              const { clone, input } = createNewLine();
+              Array.from(terminal.children).map(child => {
+                if (child != clone && child != input) terminal.removeChild(child);
+              });
+              disabled = false;
 
             } else {
               resolve(encodeURIComponent(input.innerText));
@@ -299,8 +301,38 @@
     }
   }
 
-  function initNavigator(navigator) {
+  function handleFileOpen(file, type) {
 
+    const display = document.querySelector('#display'); // TODO extract
+    const editor = document.querySelector('#text-editor'); // TODO extract
+    display.parentNode.style.display = 'none';
+    editor.style.display = 'none';
+
+    const embed = document.createElement('embed');
+    embed.type = type;
+    embed.src = 'http://192.168.5.14:1337/' + file;
+
+    if (type == 'text/plain') {
+      embed.style.minWidth = '100%';
+      embed.style.minHeight = '50vh';
+      editor.innerHTML = '';
+      editor.appendChild(embed);
+      editor.style.display = 'block';
+
+    } else {
+
+      if (type.match(/^video/)) {
+        embed.style.width = '100%';
+        embed.style.height = '100%';
+      } else {
+        embed.style.minWidth = '100%';
+        embed.style.minHeight = '50vh';
+      }
+
+      display.innerHTML = '';
+      display.appendChild(embed);
+      display.parentNode.style.display = 'block';
+    }
   }
 
   function getLastChild(element) {
@@ -342,13 +374,17 @@
     init()
       .then(() => {
         initConsole(document.getElementById('terminal'));
-        initNavigator(document.getElementById('navigator'));
+        //initNavigator(document.getElementById('navigator'));
       })
       .catch(error => console.error(error));
   });
   </script>
 </head>
 <body>
-  <div id="terminal" tabindex="0" style="width: 600px; height: 400px;"></div>
+  <div id="terminal" tabindex="0" style="width: calc(100% - 20px); height: calc(50vh - 25px); max-height: calc(50vh - 25px); margin: 10px;"></div>
+  <div style="display: none; width: calc(100% - 20px); height: calc(50vh - 25px); max-height: calc(50vh - 25px); margin: 10px; overflow-x: hidden; overflow-y: scroll;">
+    <div id="display" style="width: 100%;"></div>
+  </div>
+  <div id="text-editor" style="display: none; width: calc(100% - 20px); height: calc(50vh - 25px); max-height: calc(50vh - 25px); margin: 10px;"></div>
 </body>
 </html>
