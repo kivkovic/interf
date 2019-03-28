@@ -31,8 +31,13 @@
       color: #eea;
     }
 
-    .error, .terminal .username .sudo {
+    .stderr, 
+    .terminal .username .sudo {
       color: #ebb;
+    }
+
+    .stdout {
+    	color: #efd;
     }
 
     .terminal a:link, .terminal a:visited, .terminal a:active {
@@ -110,6 +115,8 @@
       input.innerText = '';
       setEndOfContenteditable(input);
       terminal.scrollTop = terminal.scrollHeight;
+
+      return { clone, input };
     }
 
     function appendResponse(out, error, postprocess, cmd) {
@@ -120,9 +127,10 @@
       if (postprocess) {
         response.appendChild(postprocess(out, cmd));
       } else if (error) {
-      	response.className = 'error';
+      	response.className = 'stderr';
       	response.innerText = error;
       } else {
+      	response.className = 'stdout';
         response.innerText = out;
       }
       terminal.appendChild(response);
@@ -130,10 +138,11 @@
       createNewLine();
     }
 
-    function open(path, location) {
-      fetch('http://192.168.5.14:1337/open?path=' + encodeURIComponent(path + '/' + location))
+    function open(location) {
+      fetch('http://192.168.5.14:1337/typeof?path=' + encodeURIComponent(location.replace(/\/*$/, '')))
         .then(response => response.json().then(json => {
-          appendResponse(json.out, null, formatFileList, 'ls -lhFa');
+        	console.log(json)
+          //appendResponse(json.out.files, null, formatFileList, 'ls -lhFa');
         }))
         .catch(error => console.error(error));
     }
@@ -144,7 +153,7 @@
 
       const long = (command[1] || '') + ' ' + (command[3] || '');
       if ((!command[2] || command[2].indexOf('x') == -1) && !long.match(/\b--(help|version)/)) {
-        
+
         if (!command[2] || !command[2].match(/[lR]/)) {
           lines = lines.map(line => {
             const entry = document.createElement('a');
@@ -153,13 +162,13 @@
             entry.dataset.filefolder = 'true';
             entry.dataset.isdir = '?';
             entry.innerText = line;
-            entry.onclick = open.bind(this, command[4] || '.', line);
+            entry.onclick = open.bind(this, line);
             return entry;
           });
-        
+
         } else if (command[2].match(/R/)) {
           // recursive
-        
+
         } else if (command[2].match(/l/)) {
           lines = lines.map((line, i) => {
             if (!i) return line;
@@ -174,7 +183,7 @@
             entry.dataset.filefolder = 'true';
             entry.dataset.isdir = isdir;
             entry.innerText = filename;
-            entry.onclick = open.bind(this, command[4] || '.', filename);
+            entry.onclick = open.bind(this, filename);
 
             const wrapper = document.createElement('span');
             wrapper.appendChild(document.createTextNode(info));
@@ -184,7 +193,7 @@
           });
         }
       }
-      
+
       const container = document.createElement('div');
       lines
         .map(line => typeof line == 'string' ? document.createTextNode(line) : line)
@@ -214,15 +223,19 @@
               waitingForPassword = false;
               resolve(encodeURIComponent(command) + '&password=' + encodeURIComponent(input.innerText));
               command = null;
-            
-            } else if (input.innerText.match(/^sudo/)) {
+
+            } else if (input.innerText.match(/^\s*sudo\s+/)) {
               command = input.innerText;
-              if (!waitingForPassword) {
-                disabled = false;
-                createNewLine('password');
-              } else {
-                
-              }
+              disabled = false;
+              createNewLine('password');
+
+            } else if (input.innerText.match(/^\s*clear\s*$/)) {
+            	const { clone, input } = createNewLine();
+            	Array.from(terminal.children).map(child => {
+            		if (child != clone && child != input) terminal.removeChild(child);
+            	});
+            	disabled = false;
+
             } else {
               resolve(encodeURIComponent(input.innerText));
             }
@@ -260,7 +273,7 @@
           input.innerText = executedlines[historycounter];
           setEndOfContenteditable(input);
         }
-        event.preventDefault();      
+        event.preventDefault();
         return false;
 
       } else if (event.key == 'ArrowDown') {
@@ -269,9 +282,9 @@
           input.innerText = executedlines[historycounter];
           setEndOfContenteditable(input);
         }
-        event.preventDefault();      
-        return false;        
-      
+        event.preventDefault();
+        return false;
+
       } else if (event.key == 'r' && event.ctrlKey) {
         console.log(event.key, event)
         event.stopPropagation();
