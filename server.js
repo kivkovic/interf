@@ -8,8 +8,8 @@ const app = express();
 
 app.use(cors());
 
-function spawnInstance (path) { // https://github.com/nodejs/help/issues/1183?s_tact=C209148W#issuecomment-376414424
-  const c = spawn(path);
+function spawnInstance (path, params) { // https://github.com/nodejs/help/issues/1183?s_tact=C209148W#issuecomment-376414424
+  const c = spawn(path, params);
   return command => {
     return new Promise((resolve, reject) => {
       var buf = Buffer.alloc(0);
@@ -35,8 +35,8 @@ function spawnInstance (path) { // https://github.com/nodejs/help/issues/1183?s_
 async function executeBashCmd(command, forceUSLocale = true) {
     try {
         const result = await cli((forceUSLocale ? 'LC_ALL=en_US.utf8 ' : '') + command);
-        const matches = result.match(/\nPWD=([^\n]+)\nERRORCODE=([0-9]+)\n*$/);
-        const response = result.replace(/\nPWD=([^\n]+)\nERRORCODE=([0-9]+)\n*$/, '');
+        const matches = result.match(/(?:^|\n)PWD=([^\n]+)\nERRORCODE=([0-9]+)\n*$/);
+        const response = result.replace(/(?:^|\n)PWD=([^\n]+)\nERRORCODE=([0-9]+)\n*$/, '');
         return { response, returncode: matches ? matches[2] : -1, pwd: matches ? matches[1] : null };
     } catch (error) {
         return { response: error, returncode: -1, pwd: null };
@@ -95,7 +95,7 @@ app.get('/stats', function(request, response) {
 function listFiles(path) {
     try {
         let files = fs.readdirSync(path).map(filename => ({ path, filename, fullpath: path + '/' + filename }));
-        if (files.length < 1000) {
+        if (files.length < 10000) {
 	        files = files.map(file => {
 		        try {
 			        file.mime = mime.lookup(file.fullpath);
@@ -139,23 +139,13 @@ app.get('/files', function(request, response) {
 	}
 });
 
-app.get('/open', async function (request, response) {
+app.get('/typeof', async function (request, response) {
 	const message = { start: +new Date() };
 	const path = decodeURI(request.query.path || '');
 	
-	fs.stat(path, async (error, stats) => {
-		if (error) {
-			return response.send({ ...message, error: error });
-		}
-		message.out = { stats };
-
-		if (stats.isDirectory()) {
-		    await executeBashCmd('cd ' + path);
-		    const list = await executeBashCmd('ls -lhFa'); // listFiles(path); // todo replace later with listfiles, we get more info
-		    message.out = list.response;
-		    response.send(message);
-		}
-	});
+	const type = await executeBashCmd('file -i ' + path);
+	message.out = type;
+	response.send(message);
 });
 
 app.listen(1337);
