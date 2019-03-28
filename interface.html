@@ -1,0 +1,335 @@
+<html>
+<head>
+	<link href="https://fonts.googleapis.com/css?family=Ubuntu+Mono:400,700&amp;subset=latin-ext" rel="stylesheet">
+
+	<style type="text/css">
+		.terminal-input:focus {
+			outline: none;
+		}
+
+		.terminal {
+			font-family: 'Ubuntu Mono', monospace;
+			color: #eee;
+			background-color: #2a2a2a;
+			font-size: 14px;
+			overflow: auto;
+		}
+
+		.terminal .username .user {
+			color: #6e6;
+		}
+
+		.terminal .username .at {
+			color: #ee6;
+		}
+
+		.terminal .username .host {
+			color: #be6;
+		}
+
+		.terminal .username .pwd {
+			color: #eea;
+		}
+
+		.terminal .username .sudo {
+			color: #ebb;
+		}
+
+		.terminal a:link, .terminal a:visited, .terminal a:active {
+			color: #ded;
+			text-decoration: none;
+			border-bottom: 1px dashed #444;
+		}
+
+		.terminal a:link[data-isdir="true"], .terminal a:visited[data-isdir="true"], .terminal a:active[data-isdir="true"]{
+			color: #eea;
+		}
+	</style>
+
+	<script type="text/javascript">
+
+	let user = {};
+
+	function init() {
+		return new Promise((resolve, reject) => {
+			fetch('http://192.168.5.14:1337/stats')
+				.then(response => response.json().then(json => {
+					user.name = json.out.userInfo.username;
+					user.host = json.out.hostname;
+					resolve();
+				}))
+				.catch(error => reject(error));
+		});
+	}
+
+	function initConsole(terminal) {
+		terminal.classList.add('terminal');
+
+		const username = document.createElement('span');
+		username.className = 'username';
+		username.innerHTML = `<span class="user">${user.name}</span><span class="at">@</span><span class="host">${user.host}</span>:<span class="pwd">~</span> <span class="mode">$</span>&nbsp;`;
+		terminal.appendChild(username);
+
+		const input = document.createElement('span');
+		input.className = 'input';
+		input.className = 'terminal-input';
+		input.contentEditable = true;
+		input.innerText = '';
+		terminal.appendChild(input);
+
+	    setEndOfContenteditable(input);
+
+	    let start = terminal.selectionStart;
+	    let disabled = false;
+	    let historycounter = 0;
+	    let currentPwd = '~';
+	    let waitingForPassword = false;
+	    let checkForSudo = null;
+	    let command = null;
+	    const executedlines = [];
+
+	    function createNewLine(type = 'normal') {
+	    	terminal.appendChild(document.createElement('br'));
+	    	const clone = username.cloneNode(true);
+
+	    	if (type != 'password') {
+	    		clone.innerHTML = clone.innerHTML.replace(/<span class="pwd">[^<]+<\/span>/, `<span class="pwd">${currentPwd}</span>`);
+
+	    	} else {
+	    		const last = getLastChild(terminal);
+	    		const parent = last.parentNode;
+	    		parent.replaceChild(document.createTextNode(input.innerText), last);
+	    		parent.appendChild(last);
+	    		clone.innerHTML = `<span class="sudo">sudo</span> password for ${user.name}:&nbsp;`;
+	    		waitingForPassword = true
+	    	}
+
+	    	if (type == 'password') ;
+			terminal.appendChild(clone);
+			terminal.appendChild(input);
+			input.innerText = '';
+			setEndOfContenteditable(input);
+			terminal.scrollTop = terminal.scrollHeight;
+	    }
+
+	    function appendResponse(text, postprocess, cmd) {
+	    	terminal.replaceChild(input.cloneNode(true), input);
+
+	    	const response = document.createElement('div');
+	    	response.style.cssText = 'white-space: pre;';
+	    	if (postprocess) {
+	    		response.appendChild(postprocess(text, cmd));
+	    	} else {
+		    	response.innerText = text;
+		    }
+	    	terminal.appendChild(response);
+
+	    	createNewLine();
+	    }
+
+	    function open(path, location) {
+			fetch('http://192.168.5.14:1337/open?path=' + encodeURIComponent(path + '/' + location))
+				.then(response => response.json().then(json => {
+					appendResponse(json.out, formatFileList, 'ls -lhFa');
+				}))
+				.catch(error => console.error(error));
+	    }
+
+	    function formatFileList(text, cmd = '') {
+    		let lines = text.split('\n');
+	    	const command = cmd.match(/^\s*ls(?: ((?:\s*--[a-z\-]+(?:="[^"]*"|='[^']*')?)*)\s*(?:-([A-Za-z]*))?((?:\s*--[a-z\-]+(?:="[^"]*"|='[^']*')?)*))?(\s+[^-].*)?\s*$/) || '';
+
+    		const long = (command[1] || '') + ' ' + (command[3] || '');
+    		if ((!command[2] || command[2].indexOf('x') == -1) && !long.match(/\b--(help|version)/)) {
+    			
+    			if (!command[2] || !command[2].match(/[lR]/)) {
+    				lines = lines.map(line => {
+    					const entry = document.createElement('a');
+    					entry.href = '#';
+    					entry.className = 'file-link';
+    					entry.dataset.filefolder = 'true';
+    					entry.dataset.isdir = '?';
+    					entry.innerText = line;
+    					entry.onclick = open.bind(this, command[4] || '.', line);
+    					return entry;
+    				});
+    			
+    			} else if (command[2].match(/R/)) {
+    				// recursive
+    			
+    			} else if (command[2].match(/l/)) {
+    				lines = lines.map((line, i) => {
+    					if (!i) return line;
+
+    					const info = line.replace(/(?<=.*?[0-9]{2}:[0-9]{2} ).*$/, ''),
+    						filename = line.replace(/.*?[0-9]{2}:[0-9]{2} /, ''),
+    						isdir = !!line.match(/^d/);
+
+						const entry = document.createElement('a');
+    					entry.href = '#';
+    					entry.className = 'file-link';
+    					entry.dataset.filefolder = 'true';
+    					entry.dataset.isdir = isdir;
+    					entry.innerText = filename;
+    					entry.onclick = open.bind(this, command[4] || '.', filename);
+
+    					const wrapper = document.createElement('span');
+    					wrapper.appendChild(document.createTextNode(info));
+    					wrapper.appendChild(entry);
+
+    					return wrapper;
+    				});
+    			}
+    		}
+	    	
+	    	const container = document.createElement('div');
+	    	lines
+	    		.map(line => typeof line == 'string' ? document.createTextNode(line) : line)
+	    		.map(line => (container.appendChild(line), container.appendChild(document.createElement('br'))));
+	    	return container;
+	    }
+
+	    terminal.onfocus = function () {
+	    	input.focus();
+	    }
+
+	    terminal.onkeydown = function (event) {
+	    	if (disabled) {
+	    		event.preventDefault();
+	    		return false;
+	    	}
+
+	    	if (event.key == 'Enter') {
+	    		if (input.innerText.length) {
+	    			executedlines.push(input.innerText);
+	    			historycounter = executedlines.length;
+	    			disabled = true;
+
+	    			checkForSudo = new Promise((resolve, reject) => {
+
+	    				if (waitingForPassword) {
+	    					waitingForPassword = false;
+	    					resolve(encodeURIComponent(command) + '&password=' + encodeURIComponent(input.innerText));
+	    					command = null;
+	    				
+	    				} else if (input.innerText.match(/^sudo/)) {
+	    					command = input.innerText;
+	    					if (!waitingForPassword) {
+	    						disabled = false;
+		    					createNewLine('password');
+		    				} else {
+		    					
+		    				}
+	    				} else {
+	    					resolve(encodeURIComponent(input.innerText));
+	    				}
+	    			}).then(command => fetch('http://192.168.5.14:1337/bash?cmd=' + command)
+						.then(response => response.json().then(json => {
+							if (json.pwd) {
+								currentPwd = json.pwd;
+							}
+							// post-process special cases
+							if (input.innerText.match(/^\s*ls\b/)) { // /^ls(( -[^x]+| [^-].+)\b|$)/
+								appendResponse(json.out || json.error, formatFileList, input.innerText); // TODO different handling for ok and error
+							} else {
+								appendResponse(json.out || json.error); // TODO different handling for ok and error
+							}
+							disabled = false;
+							terminal.scrollTop = terminal.scrollHeight;
+						}))
+						.catch(error => {
+							console.error(error);
+							appendResponse(error.out);
+							disabled = false;
+							terminal.scrollTop = terminal.scrollHeight;
+						}));
+	    		} else if (waitingForPassword) {
+	    			checkForSudo.resolve(input.innerText);
+	    		} else {
+	    			createNewLine();
+	    		}
+	    		event.preventDefault();
+	    		return false;
+
+	    	} else if (event.key == 'ArrowUp') {
+	    		if (executedlines.length) {
+	    			historycounter = historycounter > 0 ? --historycounter : executedlines.length - 1;
+		    		input.innerText = executedlines[historycounter];
+		    		setEndOfContenteditable(input);
+		    	}
+	    		event.preventDefault();    		
+	    		return false;
+
+	    	} else if (event.key == 'ArrowDown') {
+	    		if (executedlines.length) {
+	    			historycounter = (historycounter + 1) % executedlines.length;
+		    		input.innerText = executedlines[historycounter];
+		    		setEndOfContenteditable(input);
+		    	}
+	    		event.preventDefault();    		
+	    		return false;	    		
+	    	
+	    	} else if (event.key == 'r' && event.ctrlKey) {
+	    		console.log(event.key, event)
+	    		event.stopPropagation();
+	    		event.preventDefault();
+	    		return false;
+	    	}
+	    }
+	}
+
+	function initNavigator(navigator) {
+
+	}
+
+    function getLastChild(element) {
+        let lastChild = element.lastChild;
+        while (lastChild && lastChild.nodeType != 1) {
+            if (lastChild.previousSibling) {
+                lastChild = lastChild.previousSibling;
+            } else {
+                break;
+            }
+        }
+        return lastChild;
+    }
+
+	function canContainText(node) {
+        if (node.nodeType == 1) {
+            return !['BR', 'IMG', 'INPUT', 'LABEL', 'DIV', 'SPAN', 'STRONG'].indexOf(node.nodeName) != -1;
+        }
+        return false;
+    }
+
+    function getEndOfContenteditable(element) {
+        for (let child = getLastChild(element); child && canContainText(child); element = getLastChild(element)) {
+        	child = getLastChild(element);
+        }
+        return element;
+    }
+
+	function setEndOfContenteditable(element) { // https://stackoverflow.com/a/19588665
+		element = getEndOfContenteditable(element);
+
+        let range = document.createRange();//Create a range (a range is a like the selection but invisible)
+        range.selectNodeContents(element);//Select the entire contents of the element with the range
+        range.collapse(false);//collapse the range to the end point. false means collapse to end rather than the start
+        let selection = window.getSelection();//get the selection object (allows you to change selection)
+        selection.removeAllRanges();//remove any selections already made
+        selection.addRange(range);//make the range you have just created the visible selection
+    }
+
+	window.addEventListener('DOMContentLoaded', (event) => {
+		init()
+			.then(() => {
+				initConsole(document.getElementById('terminal'));
+				initNavigator(document.getElementById('navigator'));
+			})
+			.catch(error => console.error(error));
+	});
+	</script>
+</head>
+<body>
+	<div id="terminal" tabindex="0" style="width: 600px; height: 400px;"></div>
+</body>
+</html>
