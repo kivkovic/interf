@@ -6,6 +6,7 @@
   "dependencies": {
     "cors": "^2.8.5",
     "express": "^4.16.4",
+    "node-pty": "^0.8.1",
     "systeminformation": "^4.1.2"
   },
   "devDependencies": {},
