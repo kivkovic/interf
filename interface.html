@@ -36,7 +36,7 @@
       color: #eea;
     }
 
-    .stderr, 
+    .stderr,
     .terminal .username .sudo {
       color: #ebb;
     }
@@ -53,6 +53,15 @@
 
     .terminal a:link[data-isdir="true"], .terminal a:visited[data-isdir="true"], .terminal a:active[data-isdir="true"]{
       color: #eea;
+    }
+
+    #terminal-autocomplete {
+      position: absolute;
+      display: none;
+      font-family: 'Ubuntu Mono', monospace;
+      color: #eee;
+      background-color: #333;
+      overflow: hidden;
     }
   </style>
 
@@ -72,7 +81,7 @@
     });
   }
 
-  function initConsole(terminal) {
+  function initConsole(terminal, autocomplete) {
     terminal.classList.add('terminal');
 
     const username = document.createElement('span');
@@ -88,6 +97,25 @@
     terminal.appendChild(input);
 
     setEndOfContenteditable(input);
+
+    autocomplete.onkeydown = event => {
+      if (event.key == 'Enter' || event.key == ' ' || event.key == 'Escape' || event.key == 'Tab' || event.key == 'Backspace') {
+        if (event.key == 'Backspace') {
+          input.innerText = input.innerText.slice(0, -1);
+        } else if (event.key != 'Escape') {
+          if (input.innerText.match(/(\u00a0| )$/)) {
+            input.innerText += autocomplete.value;
+          } else {
+            input.innerText = autocomplete.value;
+          }
+        }
+        autocomplete.style.display = 'none';
+        input.focus();
+        setEndOfContenteditable(input);
+        event.preventDefault();
+        return false;
+      }
+    };
 
     let start = terminal.selectionStart;
     let disabled = false;
@@ -218,9 +246,11 @@
         return false;
       }
 
+      const text = input.innerText.replace(/\u00a0/g, ' ');
+
       if (event.key == 'Enter') {
-        if (input.innerText.length) {
-          executedlines.push(input.innerText);
+        if (text.length) {
+          executedlines.push(text);
           historycounter = executedlines.length;
           disabled = true;
 
@@ -228,15 +258,15 @@
 
             if (waitingForPassword) {
               waitingForPassword = false;
-              resolve(encodeURIComponent(command) + '&password=' + encodeURIComponent(input.innerText));
+              resolve(encodeURIComponent(command) + '&password=' + encodeURIComponent(text));
               command = null;
 
-            } else if (input.innerText.match(/^\s*sudo\s+/)) {
-              command = input.innerText;
+            } else if (text.match(/^\s*sudo\s+/)) {
+              command = text;
               disabled = false;
               createNewLine('password');
 
-            } else if (input.innerText.match(/^\s*clear\s*$/)) {
+            } else if (text.match(/^\s*clear\s*$/)) {
               const { clone, input } = createNewLine();
               Array.from(terminal.children).map(child => {
                 if (child != clone && child != input) terminal.removeChild(child);
@@ -244,7 +274,7 @@
               disabled = false;
 
             } else {
-              resolve(encodeURIComponent(input.innerText));
+              resolve(encodeURIComponent(text));
             }
           }).then(command => fetch('http://192.168.5.14:1337/bash?cmd=' + command)
             .then(response => response.json().then(json => {
@@ -252,8 +282,8 @@
                 currentPwd = json.pwd;
               }
               // post-process special cases
-              if (input.innerText.match(/^\s*ls\b/)) { // /^ls(( -[^x]+| [^-].+)\b|$)/
-                appendResponse(json.out, json.error, formatFileList, input.innerText); // TODO different handling for ok and error
+              if (text.match(/^\s*ls\b/)) { // /^ls(( -[^x]+| [^-].+)\b|$)/
+                appendResponse(json.out, json.error, formatFileList, text); // TODO different handling for ok and error
               } else {
                 appendResponse(json.out, json.error); // TODO different handling for ok and error
               }
@@ -267,7 +297,7 @@
               terminal.scrollTop = terminal.scrollHeight;
             }));
         } else if (waitingForPassword) {
-          checkForSudo.resolve(input.innerText);
+          checkForSudo.resolve(text);
         } else {
           createNewLine();
         }
@@ -277,7 +307,7 @@
       } else if (event.key == 'ArrowUp') {
         if (executedlines.length) {
           historycounter = historycounter > 0 ? --historycounter : executedlines.length - 1;
-          input.innerText = executedlines[historycounter];
+          text = executedlines[historycounter];
           setEndOfContenteditable(input);
         }
         event.preventDefault();
@@ -286,13 +316,40 @@
       } else if (event.key == 'ArrowDown') {
         if (executedlines.length) {
           historycounter = (historycounter + 1) % executedlines.length;
-          input.innerText = executedlines[historycounter];
+          text = executedlines[historycounter];
           setEndOfContenteditable(input);
         }
         event.preventDefault();
         return false;
 
+      } else if (event.key == 'Tab') {
+
+        fetch('http://192.168.5.14:1337/bash?autocomplete=' + encodeURIComponent(text))
+          .then(response => response.json())
+          .then(json => {
+            if (!json.out.response.length) return;
+
+            autocomplete.innerHTML = '';
+            json.out.response.map(entry => {
+              const option = document.createElement('option');
+              option.value = option.innerText = entry;
+              autocomplete.appendChild(option);
+            });
+
+            autocomplete.size = Math.min(8, json.out.response.length);
+            autocomplete.style.display = 'block';
+            autocomplete.style.top = (input.offsetTop + input.offsetHeight + 2) + 'px';
+            autocomplete.style.left = input.offsetLeft + 'px';
+            autocomplete.selectedIndex = 0;
+            autocomplete.focus();
+            //autocomplete.
+          })
+          .catch(error => console.error(error));
+          event.preventDefault();
+          return false;
+
       } else if (event.key == 'r' && event.ctrlKey) {
+        // TODO implement reverse search
         console.log(event.key, event)
         event.stopPropagation();
         event.preventDefault();
@@ -373,7 +430,7 @@
   window.addEventListener('DOMContentLoaded', (event) => {
     init()
       .then(() => {
-        initConsole(document.getElementById('terminal'));
+        initConsole(document.getElementById('terminal'), document.getElementById('terminal-autocomplete'));
         //initNavigator(document.getElementById('navigator'));
       })
       .catch(error => console.error(error));
@@ -381,7 +438,9 @@
   </script>
 </head>
 <body>
-  <div id="terminal" tabindex="0" style="width: calc(100% - 20px); height: calc(50vh - 25px); max-height: calc(50vh - 25px); margin: 10px;"></div>
+  <div id="terminal" tabindex="0" style="width: calc(100% - 20px); height: calc(50vh - 25px); max-height: calc(50vh - 25px); margin: 10px;">
+  </div>
+  <select multiple id="terminal-autocomplete"></select>
   <div style="display: none; width: calc(100% - 20px); height: calc(50vh - 25px); max-height: calc(50vh - 25px); margin: 10px; overflow-x: hidden; overflow-y: scroll;">
     <div id="display" style="width: 100%;"></div>
   </div>
