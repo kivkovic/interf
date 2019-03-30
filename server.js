@@ -64,13 +64,23 @@ app.get('/bash', async function(request, response) {
   const message = { start: +new Date() };
 
   if (request.query && request.query.autocomplete) {
-      const result = await executeBashCmd(`echo ${decodeURI(request.query.autocomplete)}$'\\t'$'\\t'y | bash -i 2>&1 | head -2 | tail -1\n`, true);
-      if (!result.response.match(/Display all \d+ possibilities/)) {
-          message.out = { response: result.response.split(/ +/).map(s => s.trim()).filter(s => s), returncode: result.returncode };
+      const partial = decodeURI(request.query.autocomplete);
+      //const result = await executeBashCmd(`echo ${partial}$'\\t'$'\\t' | bash -i 2>&1 | head -n -4 | tail -n +2\n`, true);
+      const result = await executeBashCmd(`echo ${partial}$'\\t'$'\\t' | bash -i 2>&1 | tail -n +2\n`, true);
+
+      if (!result.response.match(/(Display all \d+ possibilities|not found, did you mean)/)) {
+          const list = result.response
+            .split(/[^\n]+:/)[0]
+            .split(/[ \n]+/)
+            .map(s => s.trim())
+            .filter(s => s && s != partial)
+            .sort((a, b) => a < b ? -1 : a > b ? 1 : 0);
+
+          message.out = { response: list, returncode: result.returncode };
       } else {
           message.out = { response: [], returncode: -1 };
       }
-        response.send(message);
+      response.send(message);
 
     } else if (request.query && request.query.cmd) {
         if (request.query.cmd.match(/^sudo/)) {
