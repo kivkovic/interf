@@ -12,6 +12,12 @@
       outline: none;
     }
 
+    .terminal-input.password {
+      -webkit-text-security: disc;
+      position: relative;
+      top: 1px;
+    }
+
     .terminal {
       font-family: 'Ubuntu Mono', monospace;
       color: #eee;
@@ -65,13 +71,17 @@
     }
   </style>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js"></script>
+
   <script type="text/javascript">
 
   let user = {};
 
+  const server = 'http://192.168.5.14:1337/';
+
   function init() {
     return new Promise((resolve, reject) => {
-      fetch('http://192.168.5.14:1337/stats')
+      fetch(server + 'stats')
         .then(response => response.json().then(json => {
           user.name = json.out.userInfo.username;
           user.host = json.out.hostname;
@@ -98,6 +108,254 @@
 
     setEndOfContenteditable(input);
 
+    let start = terminal.selectionStart;
+    let disabled = false;
+    let historycounter = 0;
+    let currentPwd = '~';
+    let waitingForCommand = false;
+    let waitingForPassword = false;
+    let waitingForCtrlEvent = false;
+    let waitingForAutocomplete = false;
+    let command = null;
+    let lastResponse = null;
+    let lineBuffer = [];
+    const executedlines = [];
+    const socket = io(server);
+
+    socket.on('connected', data => console.log('connected to socket.io on ' + server));
+
+    socket.on('console.out', data => {
+
+      clearTimeout(lastResponse);
+      lastResponse = setTimeout(() => {
+        console.log('data from server', lineBuffer);
+
+        if (waitingForCommand) {
+          waitingForCommand = false;
+
+          if (!lineBuffer.length) {
+            debugger; // should be unreachable
+
+          } else if ((lineBuffer[0] + lineBuffer[1]).match(/(\[sudo\] password for|Sorry, try again)/i)) {
+            waitingForPassword = true;
+            createNewLine('password');
+
+          } else {
+
+            const response = lineBuffer
+              .filter((line, i) => {
+                if (i == 0 || i == lineBuffer.length - 1) return false;
+                if (i >= lineBuffer.length - 2) {
+                  const pwd = line.match(/\s*___PWD=(.+)\s*\n/);
+                  if (pwd) {
+                    currentPwd = pwd[1];
+                    // TODO check return code
+                    return false;
+                  }
+                }
+                return true;
+              })
+              .join('');
+            appendResponse(response);
+          }
+
+        } else if (waitingForAutocomplete) {
+          waitingForAutocomplete = false;
+
+          autocomplete.innerHTML = '';
+          const lines = lineBuffer[1].split(/\s+/).filter(line => line);
+          lines.map(entry => {
+            const option = document.createElement('option');
+            option.value = option.innerText = entry;
+            autocomplete.appendChild(option);
+          });
+
+          autocomplete.size = Math.min(8, lines.length);
+          autocomplete.style.display = 'block';
+          autocomplete.style.top = (input.offsetTop + input.offsetHeight + 2) + 'px';
+          autocomplete.style.left = input.offsetLeft + 'px';
+          autocomplete.selectedIndex = 0;
+          autocomplete.focus();
+
+        } else if (waitingForCtrlEvent) {
+          // TODO
+        }
+
+        lineBuffer = [];
+        disabled = false;
+      }, 400);
+
+      lineBuffer.push(data);
+    });
+
+    function createNewLine(type = 'normal') {
+      terminal.appendChild(document.createElement('br'));
+      const clone = username.cloneNode(true);
+
+      if (type != 'password') {
+        clone.innerHTML = clone.innerHTML.replace(/<span class="pwd">[^<]+<\/span>/, `<span class="pwd">${currentPwd}</span>`);
+        input.classList.remove('password');
+
+      } else {
+        const last = getLastChild(terminal);
+        const parent = last.parentNode;
+        parent.replaceChild(document.createTextNode(input.innerText), last);
+        parent.appendChild(last);
+        clone.innerHTML = `<span class="sudo">sudo</span> password for ${user.name}:&nbsp;`;
+        waitingForPassword = true
+        input.classList.add('password');
+      }
+
+      terminal.appendChild(clone);
+      terminal.appendChild(input);
+      input.innerText = '';
+      setEndOfContenteditable(input);
+      terminal.scrollTop = terminal.scrollHeight;
+
+      return { clone, input };
+    }
+
+    function appendResponse(string) {
+      terminal.replaceChild(input.cloneNode(true), input);
+
+      const response = document.createElement('div');
+      response.style.cssText = 'white-space: pre;';
+      response.className = 'stdout';
+      response.innerHTML = bashColors(string);
+      terminal.appendChild(response);
+
+      createNewLine();
+    }
+
+    function bashColors(string) {
+      return (string
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') // html escape
+        .replace(/\x1B\[([0-9;]+)m/g, (matches, font) => {
+          if (font == '0') return '</span>';
+
+          let style = '';
+          if (font.match(/\b0?1\b/)) style += 'font-weight: bold;';
+          if (font.match(/\b30\b/)) style += 'color: black;';
+          if (font.match(/\b31\b/)) style += 'color: crimson;';
+          if (font.match(/\b32\b/)) style += 'color: green;';
+          if (font.match(/\b33\b/)) style += 'color: gold;';
+          if (font.match(/\b34\b/)) style += 'color: cornflowerblue;';
+          if (font.match(/\b35\b/)) style += 'color: mediumorchid;';
+          if (font.match(/\b36\b/)) style += 'color: darkcyan;';
+          if (font.match(/\b37\b/)) style += 'color: lightgray;';
+          if (font.match(/\b90\b/)) style += 'color: darkgray;';
+          if (font.match(/\b91\b/)) style += 'color: red;';
+          if (font.match(/\b92\b/)) style += 'color: lime;';
+          if (font.match(/\b93\b/)) style += 'color: yellow;';
+          if (font.match(/\b94\b/)) style += 'color: deepskyblue;';
+          if (font.match(/\b95\b/)) style += 'color: magenta;';
+          if (font.match(/\b96\b/)) style += 'color: cyan;';
+          if (font.match(/\b97\b/)) style += 'color: white;';
+          if (font.match(/\b40\b/)) style += 'background: black;';
+          if (font.match(/\b41\b/)) style += 'background: crimson;';
+          if (font.match(/\b42\b/)) style += 'background: green;';
+          if (font.match(/\b43\b/)) style += 'background: gold;';
+          if (font.match(/\b44\b/)) style += 'background: cornflowerblue;';
+          if (font.match(/\b45\b/)) style += 'background: mediumorchid;';
+          if (font.match(/\b46\b/)) style += 'background: darkcyan;';
+          if (font.match(/\b47\b/)) style += 'background: lightgray;';
+          if (font.match(/\b100\b/)) style += 'background: darkgray;';
+          if (font.match(/\b101\b/)) style += 'background: red;';
+          if (font.match(/\b102\b/)) style += 'background: lime;';
+          if (font.match(/\b103\b/)) style += 'background: yellow;';
+          if (font.match(/\b104\b/)) style += 'background: deepskyblue;';
+          if (font.match(/\b105\b/)) style += 'background: magenta;';
+          if (font.match(/\b106\b/)) style += 'background: cyan;';
+          if (font.match(/\b107\b/)) style += 'background: white;';
+
+          return `<span style="${style}">`;
+        }));
+    }
+
+    terminal.onfocus = function () {
+      input.focus();
+    }
+
+    terminal.onkeydown = function (event) {
+
+      if (event.ctrlKey) {
+        if (event.key == 'c') socket.emit('bash', '\x03');
+        if (event.key == 'd') socket.emit('bash', '\x04');
+        if (event.key == 'r') socket.emit('bash', '\x12');
+        // TODO implement reverse search
+        //console.log(event.key, event)
+        waitingForCtrlEvent = true;
+
+        event.stopPropagation();
+        event.preventDefault();
+        return false;
+      }
+
+      if (disabled) {
+        event.preventDefault();
+        return false;
+      }
+
+      const text = input.innerText.replace(/\u00a0/g, ' ');
+
+      if (event.key == 'Enter') {
+        if (text.length) {
+          executedlines.push(text);
+          historycounter = executedlines.length;
+
+          let command;
+          if (waitingForPassword) {
+            input.style.opacity = '0';
+            input.classList.remove('password');
+            command = input.innerText + '\n';
+            input.innerHTML = '';
+            input.style.opacity = '1';
+
+          } else {
+            command =  text.trim() + ' && echo ___PWD=$PWD && echo ___RETURNCODE=$?\n';
+          }
+
+          console.log('sending command', command);
+          socket.emit('bash', command);
+
+          disabled = true;
+          waitingForCommand = true;
+          waitingForPassword = false;
+
+        } else {
+          createNewLine();
+        }
+        event.preventDefault();
+        return false;
+
+      } else if (event.key == 'ArrowUp') {
+
+        if (executedlines.length) {
+          historycounter = historycounter > 0 ? --historycounter : executedlines.length - 1;
+          input.innerText = executedlines[historycounter];
+          setEndOfContenteditable(input);
+        }
+        event.preventDefault();
+        return false;
+
+      } else if (event.key == 'ArrowDown') {
+        if (executedlines.length) {
+          historycounter = (historycounter + 1) % executedlines.length;
+          input.innerText = executedlines[historycounter];
+          setEndOfContenteditable(input);
+        }
+        event.preventDefault();
+        return false;
+
+      } else if (event.key == 'Tab') {
+        waitingForAutocomplete = true;
+        socket.emit('bash', `echo ${text.trim()}$'\\t'$'\\t' | bash -i 2>&1 | head -n -4 | tail -n +2\n`);
+        event.preventDefault();
+        return false;
+
+      }
+    }
+
     autocomplete.onkeydown = event => {
       if (event.key == 'Enter' || event.key == ' ' || event.key == 'Escape' || event.key == 'Tab' || event.key == 'Backspace') {
         if (event.key == 'Backspace') {
@@ -117,245 +375,6 @@
       }
     };
 
-    let start = terminal.selectionStart;
-    let disabled = false;
-    let historycounter = 0;
-    let currentPwd = '~';
-    let waitingForPassword = false;
-    let checkForSudo = null;
-    let command = null;
-    const executedlines = [];
-
-    function createNewLine(type = 'normal') {
-      terminal.appendChild(document.createElement('br'));
-      const clone = username.cloneNode(true);
-
-      if (type != 'password') {
-        clone.innerHTML = clone.innerHTML.replace(/<span class="pwd">[^<]+<\/span>/, `<span class="pwd">${currentPwd}</span>`);
-
-      } else {
-        const last = getLastChild(terminal);
-        const parent = last.parentNode;
-        parent.replaceChild(document.createTextNode(input.innerText), last);
-        parent.appendChild(last);
-        clone.innerHTML = `<span class="sudo">sudo</span> password for ${user.name}:&nbsp;`;
-        waitingForPassword = true
-      }
-
-      if (type == 'password') ;
-      terminal.appendChild(clone);
-      terminal.appendChild(input);
-      input.innerText = '';
-      setEndOfContenteditable(input);
-      terminal.scrollTop = terminal.scrollHeight;
-
-      return { clone, input };
-    }
-
-    function appendResponse(out, error, postprocess, cmd) {
-      terminal.replaceChild(input.cloneNode(true), input);
-
-      const response = document.createElement('div');
-      response.style.cssText = 'white-space: pre;';
-      if (postprocess) {
-        response.appendChild(postprocess(out, cmd));
-      } else if (error) {
-        response.className = 'stderr';
-        response.innerText = error;
-      } else {
-        response.className = 'stdout';
-        response.innerText = out;
-      }
-      terminal.appendChild(response);
-
-      createNewLine();
-    }
-
-    function open(location) {
-      fetch('http://192.168.5.14:1337/typeof?path=' + encodeURIComponent(location.replace(/\/*$/, '')))
-        .then(response => response.json().then(json => {
-          const matches = json.out.response.match(/^([^:]+): ([^/]+\/[^/]+);/);
-          handleFileOpen(json.out.pwd + '/' + matches[1], matches[2]);
-
-          //appendResponse(json.out.files, null, formatFileList, 'ls -lhFa'); // TODO restore this line if dir
-        }))
-        .catch(error => console.error(error));
-    }
-
-    function formatFileList(text, cmd = '') {
-      let lines = text.split('\n');
-      const command = cmd.match(/^\s*ls(?: ((?:\s*--[a-z\-]+(?:="[^"]*"|='[^']*')?)*)\s*(?:-([A-Za-z]*))?((?:\s*--[a-z\-]+(?:="[^"]*"|='[^']*')?)*))?(\s+[^-].*)?\s*$/) || '';
-
-      const long = (command[1] || '') + ' ' + (command[3] || '');
-      if ((!command[2] || command[2].indexOf('x') == -1) && !long.match(/\b--(help|version)/)) {
-
-        if (!command[2] || !command[2].match(/[lR]/)) {
-          lines = lines.map(line => {
-            const entry = document.createElement('a');
-            entry.href = '#';
-            entry.className = 'file-link';
-            entry.dataset.filefolder = 'true';
-            entry.dataset.isdir = '?';
-            entry.innerText = line;
-            entry.onclick = open.bind(this, line);
-            return entry;
-          });
-
-        } else if (command[2].match(/R/)) {
-          // recursive
-
-        } else if (command[2].match(/l/)) {
-          lines = lines.map((line, i) => {
-            if (!i) return line;
-
-            const info = line.replace(/(?<=.*?[0-9]{2}:[0-9]{2} ).*$/, ''),
-              filename = line.replace(/.*?[0-9]{2}:[0-9]{2} /, ''),
-              isdir = !!line.match(/^d/);
-
-            const entry = document.createElement('a');
-            entry.href = '#';
-            entry.className = 'file-link';
-            entry.dataset.filefolder = 'true';
-            entry.dataset.isdir = isdir;
-            entry.innerText = filename;
-            entry.onclick = open.bind(this, filename);
-
-            const wrapper = document.createElement('span');
-            wrapper.appendChild(document.createTextNode(info));
-            wrapper.appendChild(entry);
-
-            return wrapper;
-          });
-        }
-      }
-
-      const container = document.createElement('div');
-      lines
-        .map(line => typeof line == 'string' ? document.createTextNode(line) : line)
-        .map(line => (container.appendChild(line), container.appendChild(document.createElement('br'))));
-      return container;
-    }
-
-    terminal.onfocus = function () {
-      input.focus();
-    }
-
-    terminal.onkeydown = function (event) {
-      if (disabled) {
-        event.preventDefault();
-        return false;
-      }
-
-      const text = input.innerText.replace(/\u00a0/g, ' ');
-
-      if (event.key == 'Enter') {
-        if (text.length) {
-          executedlines.push(text);
-          historycounter = executedlines.length;
-          disabled = true;
-
-          checkForSudo = new Promise((resolve, reject) => {
-
-            if (waitingForPassword) {
-              waitingForPassword = false;
-              resolve(encodeURIComponent(command) + '&password=' + encodeURIComponent(text));
-              command = null;
-
-            } else if (text.match(/^\s*sudo\s+/)) {
-              command = text;
-              disabled = false;
-              createNewLine('password');
-
-            } else if (text.match(/^\s*clear\s*$/)) {
-              const { clone, input } = createNewLine();
-              Array.from(terminal.children).map(child => {
-                if (child != clone && child != input) terminal.removeChild(child);
-              });
-              disabled = false;
-
-            } else {
-              resolve(encodeURIComponent(text));
-            }
-          }).then(command => fetch('http://192.168.5.14:1337/bash?cmd=' + command)
-            .then(response => response.json().then(json => {
-              if (json.pwd) {
-                currentPwd = json.pwd;
-              }
-              // post-process special cases
-              if (text.match(/^\s*ls\b/)) { // /^ls(( -[^x]+| [^-].+)\b|$)/
-                appendResponse(json.out, json.error, formatFileList, text); // TODO different handling for ok and error
-              } else {
-                appendResponse(json.out, json.error); // TODO different handling for ok and error
-              }
-              disabled = false;
-              terminal.scrollTop = terminal.scrollHeight;
-            }))
-            .catch(error => {
-              console.error(error);
-              appendResponse(null, error.out);
-              disabled = false;
-              terminal.scrollTop = terminal.scrollHeight;
-            }));
-        } else if (waitingForPassword) {
-          checkForSudo.resolve(text);
-        } else {
-          createNewLine();
-        }
-        event.preventDefault();
-        return false;
-
-      } else if (event.key == 'ArrowUp') {
-        if (executedlines.length) {
-          historycounter = historycounter > 0 ? --historycounter : executedlines.length - 1;
-          text = executedlines[historycounter];
-          setEndOfContenteditable(input);
-        }
-        event.preventDefault();
-        return false;
-
-      } else if (event.key == 'ArrowDown') {
-        if (executedlines.length) {
-          historycounter = (historycounter + 1) % executedlines.length;
-          text = executedlines[historycounter];
-          setEndOfContenteditable(input);
-        }
-        event.preventDefault();
-        return false;
-
-      } else if (event.key == 'Tab') {
-
-        fetch('http://192.168.5.14:1337/bash?autocomplete=' + encodeURIComponent(text))
-          .then(response => response.json())
-          .then(json => {
-            if (!json.out.response.length) return;
-
-            autocomplete.innerHTML = '';
-            json.out.response.map(entry => {
-              const option = document.createElement('option');
-              option.value = option.innerText = entry;
-              autocomplete.appendChild(option);
-            });
-
-            autocomplete.size = Math.min(8, json.out.response.length);
-            autocomplete.style.display = 'block';
-            autocomplete.style.top = (input.offsetTop + input.offsetHeight + 2) + 'px';
-            autocomplete.style.left = input.offsetLeft + 'px';
-            autocomplete.selectedIndex = 0;
-            autocomplete.focus();
-            //autocomplete.
-          })
-          .catch(error => console.error(error));
-          event.preventDefault();
-          return false;
-
-      } else if (event.key == 'r' && event.ctrlKey) {
-        // TODO implement reverse search
-        console.log(event.key, event)
-        event.stopPropagation();
-        event.preventDefault();
-        return false;
-      }
-    }
   }
 
   function handleFileOpen(file, type) {
@@ -369,7 +388,12 @@
     embed.type = type;
     embed.src = 'http://192.168.5.14:1337/' + file;
 
-    if (type == 'text/plain') {
+    if (type.match(/^text/)) {
+      //fetch('http://192.168.5.14:1337/' + file)
+        //.then(contents => editor.innerText = contents);
+
+      //console.log(embed, embed.getSVGDocument())
+//debugger
       embed.style.minWidth = '100%';
       embed.style.minHeight = '50vh';
       editor.innerHTML = '';
@@ -377,6 +401,9 @@
       editor.style.display = 'block';
 
     } else {
+      //const embed = document.createElement('embed');
+      //embed.type = type;
+      //embed.src = 'http://192.168.5.14:1337/' + file;
 
       if (type.match(/^video/)) {
         embed.style.width = '100%';
