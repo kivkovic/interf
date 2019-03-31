@@ -1,7 +1,9 @@
 <html>
 <head>
-  <link href="https://fonts.googleapis.com/css?family=Ubuntu+Mono:400,700&amp;subset=latin-ext" rel="stylesheet">
+
   <link href="https://fonts.googleapis.com/css?family=Roboto+Mono:300,400,500&amp;subset=latin-ext" rel="stylesheet">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css" integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
+
   <link href="assets/prism.css" rel="stylesheet" />
   <style type="text/css">
     body {
@@ -18,6 +20,7 @@
       color: #eee;
       border: 1px solid transparent;
       background-color: #2a2a2a;
+      text-shadow: 1px 1px 0px #111;
     }
 
     .terminal-input:focus {
@@ -39,15 +42,18 @@
       overflow-y: scroll;
       overflow-x: auto;
       padding: 5px;
+      text-shadow: 1px 1px 0px #111;
     }
 
-    .terminal::-webkit-scrollbar {
+    .terminal::-webkit-scrollbar,
+    #navigator::-webkit-scrollbar {
         width: 10px;
         height: 10px;
         background: #222;
     }
 
-    .terminal::-webkit-scrollbar-thumb {
+    .terminal::-webkit-scrollbar-thumb,
+    #navigator::-webkit-scrollbar-thumb {
       background: #444;
     }
 
@@ -85,6 +91,189 @@
       background-color: #333;
       overflow: hidden;
     }
+
+    #navigator {
+      background: #2f2f2f;
+      overflow-y: scroll;
+      overflow-x: auto;
+      font-family: 'Roboto Mono', monospace;
+      font-weight: 300;
+      font-size: 12px;
+      color: #ccc;
+      text-shadow: 1px 1px 0px #111;
+    }
+
+    #navigator:focus {
+      outline: none;
+    }
+
+    /* #navigator .file {
+      display: inline-block;
+      width: calc(10% - 10px);
+      min-height: 100px;
+      overflow-wrap: break-word;
+      word-wrap: break-word;
+      margin: 10px;
+    } */
+
+    #navigator .table {
+      width: 100%;
+      user-select: none;
+    }
+
+    #navigator .cell {
+      padding: 4px 8px;
+      position: relative;
+      min-width: 18px;
+      vertical-align: middle;
+    }
+
+    #navigator .row:hover, #navigator .row.selected {
+      background-color: #393939;
+    }
+
+    #navigator .row.hidden {
+      color: #888;
+    }
+
+    #navigator .cell:nth-child(1) {
+      width: 10px;
+      text-align: center;
+    }
+
+    #navigator .cell:nth-child(3) {
+      font-size: 11px;
+      width: 120px;
+      overflow: hidden;
+    }
+
+    #navigator .cell:nth-child(4) {
+      font-size: 10px;
+      width: 90px;
+      overflow: hidden;
+    }
+
+    #navigator .cell:nth-child(5) {
+      font-size: 11px;
+      overflow: hidden;
+      width: 110px;
+    }
+
+    #navigator .cell time {
+      font-size: 10px;
+    }
+
+    #navigator .cell i {
+      font-size: 18px;
+    }
+
+    #navigator .navlocation {
+      position: sticky;
+      left: 0;
+      top: 0;
+      width: calc(100% - 201px);
+      background: #2b2b2b;
+      border: none;
+      color: #aaa;
+      font-family: 'Roboto Mono', monospace;
+      font-weight: 300;
+      font-size: 12px;
+      padding: 4px;
+      z-index: 100;
+    }
+
+    #navigator .navlocation:focus {
+      outline: none;
+    }
+
+    #navigator .controls {
+      width: 198px;
+      position: sticky;
+      float: right;
+      top: 0;
+      right: 0;
+      z-index: 100;
+      background: #333;
+    }
+
+    #navigator .controls .control {
+      width: 24px;
+      height: 24px;
+      display: inline-block;
+      text-align: center;
+      margin: 0 2px;
+      background: #2a2a2a;
+      cursor: pointer;
+    }
+
+    #navigator .controls .control:hover {
+      background: #222;
+    }
+
+    #navigator .controls .control i {
+      position: relative;
+      top: 3px;
+      font-size: 18px;
+    }
+
+    .thumbnail {
+      width: 18px;
+      height: 18px;
+      position: relative;
+      top: 1px;
+      margin: -4px 0;
+      overflow: hidden;
+      display: inline-block;
+    }
+
+    .thumbnail img {
+      height: 18px;
+    }
+
+    .row:hover .thumbnail {
+      overflow: visible;
+      top: 2px;
+      left: 7px;
+      position: absolute;
+      z-index: 100;
+    }
+
+    .row:hover .thumbnail img {
+      width: 200px;
+      height: auto;
+    }
+
+    .row:hover .cell:nth-child(2) {
+      z-index: 200;
+      color: #fff;
+    }
+
+    .table {
+      display: table;
+    }
+
+    .row {
+      display: table-row;
+    }
+
+    .cell {
+      display: table-cell;
+    }
+
+    img[data-loaded="false"] {
+      opacity: 0;
+    }
+
+    .fa-folder          { color: #eda; }
+    .fa-file-audio      { color: #eee; }
+    .fa-file-pdf        { color: #eee; }
+    .fa-file-word       { color: #eee; }
+    .fa-file-excel      { color: #eee; }
+    .fa-file-powerpoint { color: #eee; }
+    .fa-file-archive    { color: #eee; }
+    .fa-file-code       { color: #eee; }
+    .fa-file-alt        { color: #eee; }
+
   </style>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js"></script>
@@ -357,11 +546,6 @@
     embed.src = 'http://192.168.5.14:1337/' + file;
 
     if (type.match(/^text/)) {
-      //fetch('http://192.168.5.14:1337/' + file)
-        //.then(contents => editor.innerText = contents);
-
-      //console.log(embed, embed.getSVGDocument())
-//debugger
       embed.style.minWidth = '100%';
       embed.style.minHeight = '50vh';
       editor.innerHTML = '';
@@ -369,9 +553,6 @@
       editor.style.display = 'block';
 
     } else {
-      //const embed = document.createElement('embed');
-      //embed.type = type;
-      //embed.src = 'http://192.168.5.14:1337/' + file;
 
       if (type.match(/^video/)) {
         embed.style.width = '100%';
@@ -451,8 +632,264 @@
       }));
   }
 
+  function initNavigator(filenavigator) {
+
+    loadPath('');
+
+    function createCell(contents, className = '') {
+      const cell = document.createElement('div');
+      cell.className = 'cell ' + className;
+      typeof contents == 'string' && (cell.innerHTML = contents);
+      typeof contents == 'object' && (cell.appendChild(contents));
+      return cell;
+    }
+
+    function createControl(name, icon, onclick) {
+      const control = document.createElement('div');
+      control.className = 'control';
+      control.innerHTML = `<i class="${icon}"></i>`;
+      control.onclick = onclick;
+      return control;
+    }
+
+    function loadPath(path) {
+      fetch(server + 'files/?path=' + (path || ''))
+      .then(data => data.json())
+      .then(data => {
+        if (!data.out || !data.out.path) {
+          return;
+        }
+
+        filenavigator.style.display = 'block';
+        filenavigator.innerHTML = '';
+
+        const navlocation = document.createElement('input');
+        navlocation.className = 'navlocation';
+        navlocation.value = data.out.path;
+        navlocation.onkeydown = event => event.key == 'Enter' ? loadPath(navlocation.value) : true;
+        filenavigator.appendChild(navlocation);
+
+        const table = document.createElement('div');
+        table.className = 'table';
+
+        const rows = [];
+
+        let dragging = false, selection = [], copyClipboard = [], cutClipboard = [], holdingCtrl = false;
+        filenavigator.onmousedown = (event) => {
+          return (
+            holdingCtrl ||
+            event.target.classList.contains('control') ||
+            event.target.parentNode.classList.contains('control') ||
+            (dragging = true, selection = [], rows.map(r => r.classList.remove('selected')))
+          );
+        };
+        filenavigator.onmouseup = () => dragging = false;
+        filenavigator.onkeydown = event => (event.ctrlKey && (holdingCtrl = true), true);
+        filenavigator.onkeyup = event => (holdingCtrl = false, true);
+
+        const controls = document.createElement('div');
+        controls.className = 'controls';
+        controls.append(createControl('cut', 'fas fa-cut', () => (cutClipboard = cutClipboard.concat(selection), copyClipboard = [], selection = [])));
+        controls.append(createControl('copy', 'fas fa-copy', () => (copyClipboard = copyClipboard.concat(selection), cutClipboard = [], selection = [])));
+        controls.append(createControl('paste', 'fas fa-paste', () => {
+          if (copyClipboard.length) console.log('copy-pasting', copyClipboard)
+          if (cutClipboard.length) console.log('cut-pasting', cutClipboard)
+          copyClipboard = [];
+          cutClipboard = [];
+          rows.map(r => r.classList.remove('selected'));
+        }));
+        controls.append(createControl('rename', 'fas fa-i-cursor', () => console.log('RENAME', selection)));
+        controls.append(createControl('delete', 'fas fa-trash', () => console.log('DELETE', selection)));
+        controls.append(createControl('archive', 'fas fa-file-archive', () => console.log('ARCHIVE', selection)));
+        controls.append(createControl('share', 'fas fa-share-alt', () => console.log('SHARE', selection)));
+        filenavigator.append(controls);
+
+        const parent = data.out.path.split('/').slice(0, -1).join('/');
+        if (parent) {
+          const row = document.createElement('div');
+          row.className = 'row';
+          const uplink = document.createElement('span');
+          uplink.innerText = '..';
+          uplink.style.cursor = 'pointer';
+          uplink.onclick = () => loadPath(parent);
+          row.appendChild(createCell(createIcon({ mime: 'inode/directory' })));
+          row.appendChild(createCell(uplink, 'file'));
+          row.appendChild(createCell('Folder'));
+          row.appendChild(createCell(''));
+          row.appendChild(createCell(''));
+          table.appendChild(row);
+        }
+
+        data.out.files
+        .sort((a, b) => {
+          if (a.mime.match(/directory/) && !b.mime.match(/directory/)) return -1;
+          return a.filename > b.filename ? 1 : a.filename < b.filename ? -1 : 0;
+        })
+        .map(file => {
+          const row = document.createElement('div');
+          row.className = 'row';
+          const filelink = document.createElement('span');
+          filelink.innerHTML = file.filename;
+          filelink.style.cursor = 'pointer';
+          if (file.mime.match(/directory/)) {
+            filelink.onclick = () => loadPath(file.fullpath);
+          } else {
+            filelink.onclick = () => console.log('TODO open file');
+          }
+
+          row.onmousemove = () => holdingCtrl || !dragging || selection.indexOf(file) != -1 || (selection.push(file), row.classList.add('selected'));
+          row.onclick = event => {
+            if (holdingCtrl) {
+              selection.push(file);
+              row.classList.add('selected');
+            } else {
+              selection = [file];
+              rows.map(r => r == row ? r.classList.add('selected') : r.classList.remove('selected'));
+            }
+            /* event.preventDefault();
+            event.stopPropagation();
+            return false; */
+          }
+
+          const filename = createCell(filelink, 'file');
+          if (file.filename.match(/^\./)) {
+            row.classList.add('hidden');
+          }
+
+          row.appendChild(createCell(createIcon(file)));
+          row.appendChild(filename);
+          row.appendChild(createCell(formatMime(file.mime)));
+          row.appendChild(createCell(!file.mime.match(/directory/) && file.stats && file.stats.size != null ? formatSize(file.stats.size) : ''));
+          row.appendChild(createCell(!file.mime.match(/directory/) && file.stats && file.stats.mtime ? formatTimeStr(file.stats.mtime) : ''));
+          table.appendChild(row);
+          rows.push(row);
+        });
+
+        filenavigator.appendChild(table);
+
+        let iteration = 0;
+        const refreshImages = () => {
+          iteration++;
+          const images = Array.from(document.querySelectorAll('img[data-loaded="false"]'));
+          images.map(img => {
+            if (img.naturalWidth === 0) {
+              img.src = img.src.replace(/\?\d+$/, '') + '?' + (+new Date());
+            } else {
+              img.dataset.loaded = 'true';
+            }
+          });
+          if (!images.length || iteration > 20) clearInterval(refreshInterval);
+        };
+
+        refreshImages();
+        var refreshInterval = setInterval(refreshImages, 1000);
+      });
+    }
+  }
+
+  function formatMime(mime) {
+    return ({
+      'application/epub+zip': 'EPUB',
+      'application/java-archive': 'Java Archive',
+      'application/json': 'JSON',
+      'application/ld+json': 'JSON-LD',
+      'application/msword': 'Microsoft Word',
+      'application/octet-stream': 'Binary file',
+      'application/ogg': 'OGG audio',
+      'application/pdf': 'PDF',
+      'application/rtf': 'Rich Text Format',
+      'application/vnd.amazon.ebook': 'Amazon Kindle eBook',
+      'application/vnd.apple.installer+xml': 'Apple Installer Package',
+      'application/vnd.mozilla.xul+xml': 'XUL',
+      'application/vnd.ms-excel': 'Microsoft Excel',
+      'application/vnd.ms-fontobject': 'MS Embedded OpenType font',
+      'application/vnd.ms-powerpoint': 'Microsoft PowerPoint',
+      'application/vnd.oasis.opendocument.presentation': 'OpenDocument presentation',
+      'application/vnd.oasis.opendocument.spreadsheet': 'OpenDocument spreadsheet',
+      'application/vnd.oasis.opendocument.text': 'OpenDocument text document',
+      'application/vnd.openxmlformats-officedocument.presentationml.presentation': 'Microsoft PowerPoint',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'Microsoft Excel',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'Microsoft Word',
+      'application/vnd.visio': 'Microsoft Visio',
+      'application/x-7z-compressed': '7-zip archive',
+      'application/x-abiword': 'AbiWord document',
+      'application/x-bzip': 'BZip archive',
+      'application/x-bzip2': 'BZip2 archive',
+      'application/x-csh': 'C-Shell script',
+      'application/x-freearc': 'Archive document',
+      'application/x-rar-compressed': 'RAR archive',
+      'application/x-sh': 'Bourne script',
+      'application/x-shockwave-flash': 'Shockwave Flash',
+      'application/x-tar': 'TAR archive',
+      'application/xhtml+xml': 'XHTML',
+      'application/xml': 'XML',
+      'application/zip': 'ZIP archive',
+      'audio/aac': 'AAC audio',
+      'audio/midi': 'MIDI audio',
+      'audio/x-midi': 'MIDI audio',
+      'audio/mpeg': 'MP3 audio',
+      'audio/ogg': 'OGG audio',
+      'audio/wav': 'WAV audio',
+      'audio/webm': 'WEBM audio',
+      'font/otf': 'OpenType font',
+      'font/ttf': 'TrueType Font',
+      'font/woff': 'WOFF font',
+      'font/woff2': 'WOFF font',
+      'image/bmp': 'BMP image',
+      'image/gif': 'GIF image',
+      'image/jpeg': 'JPEG image',
+      'image/png': 'PNG image',
+      'image/svg+xml': 'SVG vector',
+      'image/tiff': 'TIFF',
+      'image/vnd.microsoft.icon': 'Icon',
+      'image/webp': 'WEBP image',
+      'inode/directory': 'Folder',
+      'text/calendar': 'iCalendar',
+      'text/css': 'CSS',
+      'text/csv': 'CSV',
+      'text/html': 'HTML',
+      'text/javascript': 'Javascript',
+      'text/plain': 'Text',
+      'video/3gpp': '3GPP video',
+      'video/mpeg': 'MPEG video',
+      'video/ogg': 'OGG video',
+      'video/webm': 'WEBM video',
+      'video/x-msvideo': 'AVI video',
+      'video/mp4': 'MP4 video',
+    })[mime];
+  }
+
+  function createIcon(file) {
+    if (file.thumbnail) return `<div class="thumbnail"><img src="http://192.168.5.14:1337/${file.thumbnail}" data-loaded="false" /></div>`;
+    if (file.mime.match(/directory$/)) return '<i class="fas fa-folder"></i>'
+    if (file.mime.match(/^audio/)) return '<i class="fas fa-file-audio"></i>';
+    if (file.mime.match(/pdf$/)) return '<i class="fas fa-file-pdf"></i>';
+    if (file.mime.match(/vnd.+presentation/)) return '<i class="fas fa-file-word"></i>';
+    if (file.mime.match(/vnd.+sheet/)) return '<i class="fas fa-file-excel"></i>';
+    if (file.mime.match(/vnd.+(text|document)/)) return '<i class="fas fa-file-powerpoint"></i>';
+    if (file.mime.match(/application\/.*(zip|7z|tar|bz|bzip|gz|gzip)/)) return '<i class="fas fa-file-archive"></i>';
+    if (file.mime.match(/^text/)) {
+      if (file.filename.match(/\.(jsx?|json|tsx?|py|php|cc?|cpp|java|sh)$/)) return '<i class="fas fa-file-code"></i>';
+      return '<i class="fas fa-file-alt"></i>';
+    }
+
+    return '<i class="fas fa-file"></i>';
+  }
+
+  function formatSize(size) {
+    if (size < 1024) return Math.round(size / 1024 * 10) / 10 + 'kB';
+    if (size < 1024 * 1024) return Math.round(size / 1024) + 'kB';
+    if (size < 1024 * 1024 * 1024) return Math.round(size / 1024 / 1024 * 10) / 10 + 'MB';
+    return Math.round(size / 1024 / 1024 / 1024 * 100) / 100 + 'GB';
+  }
+
+  function formatTimeStr(time) {
+    return time.replace(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}).+$/, '<date>$1-$2-$3</date> <time>$4:$5</time>');
+  }
+
   window.addEventListener('DOMContentLoaded', (event) => {
     initConsole(document.getElementById('terminal'), document.getElementById('terminal-autocomplete'));
+    initNavigator(document.getElementById('navigator'));
   });
   </script>
 </head>
@@ -463,6 +900,7 @@
   <div style="display: none; width: calc(100% - 20px); height: calc(50vh - 25px); max-height: calc(50vh - 25px); margin: 10px; overflow-x: hidden; overflow-y: scroll;">
     <div id="display" style="width: 100%;"></div>
   </div>
+  <div id="navigator" tabIndex="10" style="display: none; width: calc(100% - 20px); height: calc(50vh - 25px); max-height: calc(50vh - 25px); margin: 10px;"></div>
   <div id="text-editor" style="display: none; width: calc(100% - 20px); height: calc(50vh - 25px); max-height: calc(50vh - 25px); margin: 10px;"></div>
 </body>
 </html>
