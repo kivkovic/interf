@@ -1,22 +1,23 @@
 const os = require('os');
 const fs = require('fs');
-//const spawn = require('child_process').spawn;
 const pty = require('node-pty');
-const mime = require('mime');
 const express = require('express');
 const cors = require('cors');
 const app = express();
 const http = require('http').Server(app);
 const io = require('socket.io')(http);
+const { exec } = require('child_process');
+const readChunk = require('read-chunk');
+const fileType = require('file-type');
+const thumbnail = require('thumbnail');
+const md5File = require('md5-file');
 
 app.use(express.static('/'))
 app.use(cors());
 
-process.on('warning', e => console.warn(e.stack));
+process.on('warning', e => console.log(e.stack));
 
 let cli = spawnInstance('bash');
-//cli('echo $PWD'); // TODO throw if this cause errors
-//const SIGINT = Symbol('SIGINT');
 
 let socket;
 
@@ -30,54 +31,62 @@ function spawnInstance(path) {
   });
 
   child.on('data', data => {
-    console.log('sending chunk', JSON.stringify(data));
-    if (socket) socket.emit('consoleout', { data: JSON.stringify(data) });
+    console.log('bash response', JSON.stringify(data));
+    if (socket) socket.emit('console.out', data);
   });
 
-  return (command) => {
-    child.write(`${command} && echo ___PWD=$PWD && echo ___RETURNCODE=$?\n`); // add & to force run in bg and avoid interactive apps? lastline contains pid
-  };
+  return string => {
+    console.log('writing to bash', string);
+    child.write(string);
+  }
 }
 
-async function executeBashCmd(command, forceUSLocale = true) {
-    try {
-      return await cli((forceUSLocale ? 'LC_ALL=en_US.utf8 ' : '') + command);
-    } catch (error) {
-      return { response: error, returncode: 1, pwd: null };
+app.get('/files', function(request, response) {
+  const message = { start: +new Date() };
+  const path = decodeURI(request.query.path || process.env.HOME);
+  const thumbroot = '/home/kreso/Projects/interface/cache/thumbnails';
+
+  fs.stat(path, (error, stats) => {
+    if (error) {
+      return response.send({ ...message, error: error });
     }
-}
+    message.out = { stats };
+    message.out.path = path;
 
-app.get('/bash', async function(request, response) {
-  const message = { start: +new Date() };
-  executeBashCmd(decodeURI(request.query.cmd));
-  /* if (request.query.cmd) {
-    processBashRequest(request, response, message);
-  } else if (request.query.autocomplete) {
-    //message.response = await executeBashCmd(decodeURI(request.query.autocomplete), false)
-    //response.send(response);
-  } else if (request.query.kill) {
-
-  } */
-  response.send({ ...message });
-});
-
-app.get('/stats', function(request, response) {
-  const message = { start: +new Date() };
-  const stats = require('systeminformation');
-  stats.osInfo()
-      .then(data => response.send({ ...message, out: { ...data, userInfo: os.userInfo() } }))
-      .catch(error => console.error({ ...message, error: error }));
-});
-
-function listFiles(path) {
-    try {
+    if (stats.isDirectory()) {
+      message.out.isdir = true;
+      try {
         let files = fs.readdirSync(path).map(filename => ({ path, filename, fullpath: path + '/' + filename }));
         if (files.length < 10000) {
           files = files.map(file => {
             try {
-              file.mime = mime.lookup(file.fullpath);
               file.stats = fs.statSync(file.fullpath);
+              if (file.stats.isDirectory()) {
+                file.mime = 'inode/directory';
+
+              } else {
+                const type = fileType(readChunk.sync(file.fullpath, 0, fileType.minimumBytes));
+                file.mime = type && type.mime || 'text/plain';
+              }
+
+              if (file.mime.match(/(image|video)\//)) {
+                const hash = md5File.sync(file.fullpath);
+                file.thumbnail = `${thumbroot}/${hash}.jpg`;
+
+                fs.exists(file.thumbnail, function(exists) {
+                  if (!exists) {
+                    if (file.mime.match(/image/)) {
+                      exec(`gm convert -size 200x200 ${file.fullpath} -resize 200x200 +profile "*" ${thumbroot}/${hash}.jpg`); // TODO error handling
+                    } else {
+                      exec(`ffmpeg -i ${file.fullpath} -vcodec mjpeg -vframes 1 -an -vf scale=200:-1 -ss \`ffmpeg -i ${file.fullpath} 2>&1 | grep Duration | awk '{print $2}' | tr -d , | awk -F ':' '{print ($3+$2*60+$1*3600)/2}'\` ${thumbroot}/${hash}.jpg`);
+                    }
+                  }
+                });
+
+              }
+
             } catch (error) {
+              console.log(error);
               file.stats = {};
               file.unavailable = true;
             }
@@ -85,35 +94,16 @@ function listFiles(path) {
           });
         }
 
-        return files;
-    } catch (error) {
-        return null;
+          message.out.files =  files;
+      } catch (error) {
+          message.out.files =  [];
+      }
+
+    } else {
+      message.out.mime = mime.lookup(path);
     }
-}
-
-app.get('/files', function(request, response) {
-  const message = { start: +new Date() };
-  const path = decodeURI(request.query.path || '');
-
-  const cmd = request.query.cmd in ['list', 'move', 'copy', 'delete', 'touch'] ? request.query.cmd : 'list';
-
-  if (cmd == 'list')  {
-    return fs.stat(path, (error, stats) => {
-      if (error) {
-        return response.send({ ...message, error: error });
-      }
-      message.out = { stats };
-
-      if (stats.isDirectory()) {
-        message.out.isdir = true;
-        message.out.files = listFiles(path);
-
-      } else {
-        message.out.mime = mime.lookup(path);
-      }
-      response.send(message);
-    });
-  }
+    response.send(message);
+  });
 });
 
 app.get('/typeof', async function (request, response) {
@@ -127,8 +117,14 @@ app.get('/typeof', async function (request, response) {
 
 io.on('connection', sock => {
   socket = sock;
-  console.log('socket connection from', sock.client.conn.remoteAddress);
-  sock.emit('connected');
+  console.log('socket connection from', socket.client.conn.remoteAddress);
+  socket.emit('connected');
+
+  socket.on('bash', string => {
+    //console.log('command', string)
+    //executeBashCmd(command);
+    cli(string);
+  });
 });
 
 http.listen(1337);
