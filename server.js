@@ -17,10 +17,6 @@ app.use(cors());
 
 process.on('warning', e => console.log(e.stack));
 
-let cli = spawnInstance('bash');
-
-let socket;
-
 function spawnInstance(path) {
   const child = pty.spawn(path, [], {
     name: 'xterm-color',
@@ -30,14 +26,13 @@ function spawnInstance(path) {
     env: process.env
   });
 
-  child.on('data', data => {
-    console.log('bash response', JSON.stringify(data));
-    if (socket) socket.emit('console.out', data);
-  });
-
-  return string => {
-    console.log('writing to bash', string);
-    child.write(string);
+  return {
+    ondata: (callback) => child.on('data', callback),
+    close: () => child.kill(),
+    run: string => {
+      console.log('writing to bash', string);
+      child.write(string);
+    }
   }
 }
 
@@ -106,25 +101,28 @@ app.get('/files', function(request, response) {
   });
 });
 
-app.get('/typeof', async function (request, response) {
-  const message = { start: +new Date() };
-  const path = decodeURI(request.query.path || '');
+io.on('connection', socket => {
+  const cli = spawnInstance('bash');
 
-  const type = await executeBashCmd('file -i ' + path);
-  message.out = type;
-  response.send(message);
-});
+  cli.ondata(data => {
+    if (socket) socket.emit('console.out', data);
+  });
 
-io.on('connection', sock => {
-  socket = sock;
-  console.log('socket connection from', socket.client.conn.remoteAddress);
+  console.log('Socket connection from', socket.client.conn.remoteAddress);
   socket.emit('connected');
 
   socket.on('bash', string => {
-    //console.log('command', string)
-    //executeBashCmd(command);
-    cli(string);
+    cli.run(string);
+    lastping = +new Date;
   });
+
+  const recycle = setInterval(() => {
+    if (!socket.connected) {
+      console.log('Terminating zombie child');
+      clearInterval(recycle);
+      cli.close();
+    }
+  }, 10000);
 });
 
 http.listen(1337);
