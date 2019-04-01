@@ -43,6 +43,7 @@
       overflow-x: auto;
       padding: 5px;
       text-shadow: 1px 1px 0px #111;
+      box-shadow: 1px 1px 1px -1px rgba(0,0,0,0.8), -1px -1px 1px -1px rgba(0,0,0,0.5);
     }
 
     .terminal::-webkit-scrollbar,
@@ -93,6 +94,7 @@
     }
 
     #navigator {
+      position: relative;
       background: #2f2f2f;
       overflow-y: scroll;
       overflow-x: auto;
@@ -101,6 +103,7 @@
       font-size: 12px;
       color: #ccc;
       text-shadow: 1px 1px 0px #111;
+      box-shadow: 1px 1px 1px -1px rgba(0,0,0,0.8);
     }
 
     #navigator:focus {
@@ -117,8 +120,12 @@
     } */
 
     #navigator .table {
-      width: 100%;
+      width: calc(100% - 2px);
       user-select: none;
+      box-shadow: -1px 0px 1px -1px rgba(0,0,0,0.4);
+      z-index: 190;
+      position: relative;
+      left: 2px;
     }
 
     #navigator .cell {
@@ -126,10 +133,16 @@
       position: relative;
       min-width: 18px;
       vertical-align: middle;
+      transition: all 0.15s ease-in-out;
+    }
+
+    #navigator .row {
+      transition: all 0.15s ease-in-out;
     }
 
     #navigator .row:hover, #navigator .row.selected {
       background-color: #393939;
+      box-shadow: 0 1px 1px -1px rgba(0,0,0,0.4);
     }
 
     #navigator .row.hidden {
@@ -171,7 +184,7 @@
       position: sticky;
       left: 0;
       top: 0;
-      width: calc(100% - 201px);
+      width: calc(100% - 284px);
       background: #2b2b2b;
       border: none;
       color: #aaa;
@@ -179,7 +192,8 @@
       font-weight: 300;
       font-size: 12px;
       padding: 4px;
-      z-index: 100;
+      z-index: 210;
+      box-shadow: 1px 1px 1px -1px rgba(0,0,0,0.8);
     }
 
     #navigator .navlocation:focus {
@@ -187,12 +201,13 @@
     }
 
     #navigator .controls {
-      width: 198px;
+      width: 282px;
+      padding-left: 2px;
       position: sticky;
       float: right;
       top: 0;
       right: 0;
-      z-index: 100;
+      z-index: 205;
       background: #333;
     }
 
@@ -204,16 +219,29 @@
       margin: 0 2px;
       background: #2a2a2a;
       cursor: pointer;
+      box-shadow: 1px 1px 1px -1px rgba(0,0,0,0.8);
+      z-index: 250;
     }
 
     #navigator .controls .control:hover {
       background: #222;
+      color: #fff;
     }
 
     #navigator .controls .control i {
       position: relative;
       top: 3px;
       font-size: 18px;
+    }
+
+    #navigator .separator {
+      width: 100%;
+      height: 4px;
+      position: sticky;
+      top: 24px;
+      background: #333;
+      z-index: 200;
+      box-shadow: 1px 1px 1px -1px rgba(0,0,0,0.8);
     }
 
     .thumbnail {
@@ -244,7 +272,7 @@
     }
 
     .row:hover .cell:nth-child(2) {
-      z-index: 200;
+      z-index: 100;
       color: #fff;
     }
 
@@ -264,7 +292,7 @@
       opacity: 0;
     }
 
-    .fa-folder          { color: #eda; }
+    .fa-folder          { color: #fda; }
     .fa-file-audio      { color: #eee; }
     .fa-file-pdf        { color: #eee; }
     .fa-file-word       { color: #eee; }
@@ -274,6 +302,112 @@
     .fa-file-code       { color: #eee; }
     .fa-file-alt        { color: #eee; }
 
+    .row:hover .fa-folder          { color: #feb; }
+    .row:hover .fa-file-audio      { color: #fff; }
+    .row:hover .fa-file-pdf        { color: #fff; }
+    .row:hover .fa-file-word       { color: #fff; }
+    .row:hover .fa-file-excel      { color: #fff; }
+    .row:hover .fa-file-powerpoint { color: #fff; }
+    .row:hover .fa-file-archive    { color: #fff; }
+    .row:hover .fa-file-code       { color: #fff; }
+    .row:hover .fa-file-alt        { color: #fff; }
+
+    #contextmenu {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      background: #333;
+      box-shadow: 1px 1px 2px -2px #000;
+      min-width: 160px;
+      z-index: 4000;
+      transition: height 0.09s ease-out;
+      overflow: hidden;
+      font-family: 'Roboto Mono', monospace;
+      font-weight: 300;
+      font-size: 12px;
+      color: #ccc;
+      text-shadow: 1px 1px 0px #111;
+      box-shadow: 1px 1px 1px -1px rgba(0,0,0,0.8), -1px -1px 1px -1px rgba(0,0,0,0.4);
+      /* */
+      height: 0;
+    }
+
+    #contextmenu li {
+      padding: 4px;
+      cursor: pointer;
+      transition: all 0.2s ease-in-out;
+    }
+
+    #contextmenu li:hover {
+      background-color: #393939;
+      box-shadow: 0 1px 1px -1px rgba(0,0,0,0.4);
+    }
+
+    #contextmenu li i {
+      width: 32px;
+      margin-left: 7px;
+      font-size: 16px;
+    }
+
+    #apps .icon {
+      display: inline-block;
+      width: 64px;
+      height: 64px; /* */
+      margin: 10px 0 10px 10px;
+      transform: perspective(1px) translateZ(0);
+    }
+
+    #apps .icon.menu {
+      color: #fff;
+      font-size: 36px;
+      text-align: center;
+      width: 64px;
+      height: 64px;
+      transition: transform 0.2s ease-in-out;
+    }
+
+    #apps .icon.menu i {
+      position: relative;
+      position: relative;
+      top: -18px;
+      left: 0;
+      text-shadow: 1px 1px 2px #000;
+    }
+
+    #apps .icon:not(.menu):hover {
+      filter: brightness(120%);
+      animation-name: hvr-buzz-out;
+      animation-duration: 0.25s;
+      animation-timing-function: linear;
+      animation-iteration-count: 1;
+    }
+
+    #apps .icon.menu:hover {
+      color: #ddd;
+    }
+
+    #apps .icon > svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    @keyframes hvr-buzz-out {
+      0% {
+        transform: translateX(0) rotate(1deg);
+      }
+      33% {
+        transform: translateX(-1px) rotate(-1deg);
+      }
+      66% {
+        transform: translateX(1px) rotate(0);
+      }
+      100% {
+        transform: translateX(0) rotate(0);
+      }
+    }
   </style>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js"></script>
@@ -288,13 +422,14 @@
     terminal.classList.add('terminal');
 
     const location = document.createElement('span');
-    terminal.appendChild(location);
+    //terminal.appendChild(location);
     let locationText = '';
 
     const input = document.createElement('input');
     input.className = 'input';
     input.className = 'terminal-input';
     input.value = '';
+    input.style.display = 'none';
     terminal.appendChild(input);
     input.focus();
 
@@ -314,7 +449,8 @@
 
     socket.on('connected', data => {
       console.log('connected to socket.io on ' + server);
-      socket.emit('bash', 'hello\n');
+      waitingForCommand = true;
+      setTimeout(() => socket.emit('bash', 'hello\n'), 500);
     });
 
     socket.on('console.out', data => {
@@ -411,6 +547,7 @@
       terminal.appendChild(clone);
       terminal.appendChild(input);
       input.style.width = `calc(100% - ${Math.max(input.offsetLeft, 200)}px)`;
+      input.style.display = '';
       input.focus();
       terminal.scrollTop = terminal.scrollHeight;
     }
@@ -632,7 +769,7 @@
       }));
   }
 
-  function initNavigator(filenavigator) {
+  function initNavigator(filenavigator, contextmenu) {
 
     loadPath('');
 
@@ -644,10 +781,18 @@
       return cell;
     }
 
-    function createControl(name, icon, onclick) {
+    function createControl(title, icon, onclick, css) {
       const control = document.createElement('div');
+      control.title = title;
       control.className = 'control';
-      control.innerHTML = `<i class="${icon}"></i>`;
+      control.innerHTML = `<i class="${icon}" style="${css}"></i>`;
+      control.onclick = onclick;
+      return control;
+    }
+
+    function createContextControl(text, icon, onclick, css) {
+      const control = document.createElement('li');
+      control.innerHTML = `<i class="${icon}" style="${css}"></i>${text}`;
       control.onclick = onclick;
       return control;
     }
@@ -687,23 +832,6 @@
         filenavigator.onkeydown = event => (event.ctrlKey && (holdingCtrl = true), true);
         filenavigator.onkeyup = event => (holdingCtrl = false, true);
 
-        const controls = document.createElement('div');
-        controls.className = 'controls';
-        controls.append(createControl('cut', 'fas fa-cut', () => (cutClipboard = cutClipboard.concat(selection), copyClipboard = [], selection = [])));
-        controls.append(createControl('copy', 'fas fa-copy', () => (copyClipboard = copyClipboard.concat(selection), cutClipboard = [], selection = [])));
-        controls.append(createControl('paste', 'fas fa-paste', () => {
-          if (copyClipboard.length) console.log('copy-pasting', copyClipboard)
-          if (cutClipboard.length) console.log('cut-pasting', cutClipboard)
-          copyClipboard = [];
-          cutClipboard = [];
-          rows.map(r => r.classList.remove('selected'));
-        }));
-        controls.append(createControl('rename', 'fas fa-i-cursor', () => console.log('RENAME', selection)));
-        controls.append(createControl('delete', 'fas fa-trash', () => console.log('DELETE', selection)));
-        controls.append(createControl('archive', 'fas fa-file-archive', () => console.log('ARCHIVE', selection)));
-        controls.append(createControl('share', 'fas fa-share-alt', () => console.log('SHARE', selection)));
-        filenavigator.append(controls);
-
         const parent = data.out.path.split('/').slice(0, -1).join('/');
         if (parent) {
           const row = document.createElement('div');
@@ -719,6 +847,53 @@
           row.appendChild(createCell(''));
           table.appendChild(row);
         }
+
+        const navup = () => loadPath(parent);
+        const home = () => loadPath('');
+        const cut = () => (cutClipboard = cutClipboard.concat(selection), copyClipboard = [], selection = []);
+        const copy = () => (copyClipboard = copyClipboard.concat(selection), cutClipboard = [], selection = []);
+        const paste = () => console.log('RENAME', selection);
+        const rename = () => console.log('DELETE', selection);
+        const del = () => console.log('ARCHIVE', selection);
+        const archive = () => console.log('SHARE', selection);
+        const share = () => console.log('TERMINAL HERE', selection);
+        const terminalhere = () => {
+          if (copyClipboard.length) console.log('copy-pasting', copyClipboard);
+          if (cutClipboard.length) console.log('cut-pasting', cutClipboard);
+          copyClipboard = [];
+          cutClipboard = [];
+          rows.map(r => r.classList.remove('selected'));
+        };
+        const focusSearchInput = () => console.log('focusSearchInput');
+        const newfolder = () => console.log('newfolder');
+        const newfile  = () => console.log('newfile ');
+
+        const controls = document.createElement('div');
+        controls.className = 'controls';
+
+        contextmenu.innerHTML = '';
+        contextmenu.className = 'contextmenu';
+
+        table.onclick = () => contextmenu.style.height = '0';
+
+        contextmenu.append(createContextControl('search', 'fas fa-search', focusSearchInput));
+        contextmenu.append(createContextControl('new folder', 'fas fa-folder-plus', newfolder));
+        contextmenu.append(createContextControl('new file', 'fas fa-file-medical', newfile));
+
+        for (let def of [{ ref: controls, fn: createControl }, { ref: contextmenu, fn: createContextControl }]) {
+          def.ref.append(def.fn('navigate up', 'fas fa-chevron-up', navup));
+          def.ref.append(def.fn('home', 'fas fa-home', home));
+          def.ref.append(def.fn('cut', 'fas fa-cut', cut));
+          def.ref.append(def.fn('copy', 'fas fa-copy', copy));
+          def.ref.append(def.fn('paste', 'fas fa-paste', paste));
+          def.ref.append(def.fn('rename', 'fas fa-i-cursor', rename));
+          def.ref.append(def.fn('delete', 'fas fa-trash', del));
+          def.ref.append(def.fn('archive', 'fas fa-file-archive', archive));
+          def.ref.append(def.fn('share', 'fas fa-share-alt', share));
+          def.ref.append(def.fn('terminal here', 'fas fa-terminal', terminalhere, 'font-size: 16px; line-height: 19px;'));
+        }
+
+        filenavigator.append(controls);
 
         data.out.files
         .sort((a, b) => {
@@ -756,6 +931,16 @@
             row.classList.add('hidden');
           }
 
+          row.addEventListener('contextmenu', function(event) {
+            //debugger
+            contextmenu.style.left = `${event.clientX}px`;
+            contextmenu.style.top = `${event.clientY}px`;
+            setTimeout(() => contextmenu.style.height = `${contextmenu.children.length * 25 - 1}px`, 100); // TODO unhardcode
+            event.stopPropagation();
+            event.preventDefault();
+            return false;
+          }, false);
+
           row.appendChild(createCell(createIcon(file)));
           row.appendChild(filename);
           row.appendChild(createCell(formatMime(file.mime)));
@@ -764,6 +949,10 @@
           table.appendChild(row);
           rows.push(row);
         });
+
+        const separator = document.createElement('div');
+        separator.className = 'separator';
+        filenavigator.appendChild(separator);
 
         filenavigator.appendChild(table);
 
@@ -887,20 +1076,64 @@
     return time.replace(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}).+$/, '<date>$1-$2-$3</date> <time>$4:$5</time>');
   }
 
+  function initApps(approw) {
+    //
+    const apps = [
+      { special: 'menu' },
+      { name: 'chrome' },
+      { name: 'mail' },
+      { name: 'music' },
+      { name: 'drive' },
+      { name: 'photos' },
+      { name: 'docs' },
+      { name: 'sheets' },
+      { name: 'calendar' },
+    ];
+
+    approw.style.maxWidth = (apps.length * 150) + 'px';
+
+    apps.map(app => {
+      const icon = document.createElement('div');
+      icon.className = 'icon';
+
+      if (app.special == 'menu') {
+        icon.className += ' menu';
+        icon.innerHTML = '<i class="fas fa-bars"></i>';
+      } else {
+        icon.style.width = `calc(${100 / (apps.length)}% - 15px)`;
+        icon.innerHTML = `<svg><use xlink:href="#${app.name}" /></svg>`;
+      }
+      approw.appendChild(icon);
+    });
+  }
+
   window.addEventListener('DOMContentLoaded', (event) => {
     initConsole(document.getElementById('terminal'), document.getElementById('terminal-autocomplete'));
-    initNavigator(document.getElementById('navigator'));
+    initNavigator(document.getElementById('navigator'), document.getElementById('contextmenu'));
+    initApps(document.getElementById('apps'));
   });
   </script>
 </head>
 <body>
-  <div id="terminal" tabindex="0" style="width: calc(100% - 30px); height: calc(50vh - 25px); max-height: calc(50vh - 25px); margin: 10px;">
+  <div id="apps" style="width: calc(100% - 20px); height: 80px;"></div>
+  <div id="navigator" tabIndex="10" style="display: none; width: calc(100% - 20px); height: calc(50vh - 25px); max-height: calc(50vh - 25px); margin: 10px;"></div>
+  <ul id="contextmenu"></ul>
+  <div id="terminal" tabindex="0" style="width: calc(100% - 30px); height: calc(50vh - 95px); max-height: calc(50vh - 95px); margin: 10px;">
   </div>
   <select multiple id="terminal-autocomplete"></select>
   <div style="display: none; width: calc(100% - 20px); height: calc(50vh - 25px); max-height: calc(50vh - 25px); margin: 10px; overflow-x: hidden; overflow-y: scroll;">
     <div id="display" style="width: 100%;"></div>
   </div>
-  <div id="navigator" tabIndex="10" style="display: none; width: calc(100% - 20px); height: calc(50vh - 25px); max-height: calc(50vh - 25px); margin: 10px;"></div>
   <div id="text-editor" style="display: none; width: calc(100% - 20px); height: calc(50vh - 25px); max-height: calc(50vh - 25px); margin: 10px;"></div>
+  <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+<symbol id="mail" width="64" height="64" version="1.1" viewBox="0 0 16.933333 16.933333"><g transform="translate(0 -280.07)"><path d="m2.3813 284.83h12.171c0.43974 0 0.79376 0.35402 0.79376 0.79376v8.4666c0 0.43974-0.35402 0.79376-0.79376 0.79376h-12.171c-0.43974 0-0.79376-0.35402-0.79376-0.79376v-8.4666c0-0.43974 0.35402-0.79376 0.79376-0.79376z" fill="#9f3129" style="paint-order:markers stroke fill"/><rect x="2.6458" y="282.18" width="11.642" height="8.9958" ry=".79376" fill="#fff" stroke="#000" stroke-opacity=".058824" stroke-width=".26458" style="paint-order:markers stroke fill"/><path d="m15.181 285.14c0.10189 0.13347 0.16485 0.29844 0.16485 0.48007v8.4667c0 0.43974-0.35401 0.79375-0.79375 0.79375h-12.171c-0.20513 0-0.38961-0.0794-0.5302-0.20619z" fill="#f4685c" style="paint-order:markers stroke fill"/><path d="m1.7523 285.14c-0.10189 0.13347-0.16485 0.29844-0.16485 0.48007v8.4667c0 0.43974 0.35401 0.79375 0.79375 0.79375h12.171c0.20513 0 0.38961-0.0794 0.5302-0.20619z" fill="#ff7a6e" style="paint-order:markers stroke fill"/></g></symbol>
+<symbol id="docs" viewBox="0 0 512 512"><path style="fill:#518EF8;" d="M441.412,140.235v338.781c0,18.219-14.778,32.983-32.983,32.983H103.572 c-18.219,0-32.983-14.764-32.983-32.983V32.983C70.588,14.764,85.352,0,103.572,0h197.605L441.412,140.235z"/><g> <rect x="161.18" y="257.054" style="fill:#FFFFFF;" width="189.626" height="21.071"/> <rect x="161.18" y="304.112" style="fill:#FFFFFF;" width="189.626" height="21.071"/> <rect x="161.18" y="351.171" style="fill:#FFFFFF;" width="189.626" height="21.071"/> <rect x="161.18" y="398.23" style="fill:#FFFFFF;" width="134.855" height="21.071"/> </g><polygon style="fill:#3A5BBC;" points="320.31,137.188 441.412,187.079 441.412,140.235 372.751,119.962 "/><path style="fill:#ACD1FC;" d="M441.412,140.235H334.16c-18.22,0-32.983-14.764-32.983-32.983V0L441.412,140.235z"/></symbol>
+<symbol id="calendar" viewBox="0 0 511.999 511.999"><path style="fill:#E6E6E6;" d="M455.617,10.846H56.367c-12.437,0-22.517,10.094-22.517,22.531v74.912h444.296V33.377 C478.147,20.939,468.053,10.846,455.617,10.846z M148.16,55.922c-5.953,0-10.784-4.831-10.784-10.784s4.831-10.784,10.784-10.784 c5.953,0,10.784,4.831,10.784,10.784S154.112,55.922,148.16,55.922z M366.656,55.922c-5.953,0-10.784-4.831-10.784-10.784 s4.831-10.784,10.784-10.784s10.784,4.831,10.784,10.784S372.608,55.922,366.656,55.922z"/><path style="fill:#3A5BBC;" d="M511.505,113.523l-34.077,177.704l13.918,184.793c1.021,13.559-9.706,25.134-23.322,25.134H43.96 c-13.602,0-24.343-11.575-23.322-25.134l13.933-184.793L0.494,113.523C-2.712,96.815,10.099,81.3,27.123,81.3h457.74 C501.901,81.3,514.711,96.815,511.505,113.523z"/><path style="fill:#518EF8;" d="M468.024,501.153H43.96c-13.602,0-24.343-11.575-23.322-25.134l13.933-184.793h244.435h198.423 l13.918,184.793C492.368,489.578,481.641,501.153,468.024,501.153z"/><g> <path style="fill:#FFFFFF;" d="M247.371,244.856c0-34.687-29.026-62.906-64.703-62.906s-64.703,28.219-64.703,62.906h21.568 c0-22.794,19.351-41.338,43.136-41.338s43.136,18.544,43.136,41.338s-19.351,41.338-43.136,41.338h-20.13v21.568h20.13 c23.785,0,43.136,18.544,43.136,41.338c0,22.794-19.351,41.338-43.136,41.338s-43.136-18.544-43.136-41.338h-21.568 c0,34.687,29.026,62.906,64.703,62.906s64.703-28.219,64.703-62.906c0-21.663-11.322-40.802-28.513-52.122 C236.05,285.659,247.371,266.519,247.371,244.856z"/> <polygon style="fill:#FFFFFF;" points="289.289,218.704 300.353,237.218 342.989,211.741 342.989,401.222 364.556,401.222 364.556,173.728 "/> </g></symbol>
+<symbol id="sheets" viewBox="0 0 512 512"><path style="fill:#28B446;" d="M441.412,140.235v338.781c0,18.219-14.778,32.983-32.983,32.983H103.572 c-18.219,0-32.983-14.764-32.983-32.983V32.983C70.588,14.764,85.352,0,103.572,0h197.605L441.412,140.235z"/><polygon style="fill:#219B38;" points="320.31,137.188 441.412,187.079 441.412,140.235 372.751,119.962 "/><path style="fill:#6ACE7C;" d="M441.412,140.235H334.16c-18.22,0-32.983-14.764-32.983-32.983V0L441.412,140.235z"/><path style="fill:#FFFFFF;" d="M337.115,254.946H174.876c-5.82,0-10.536,4.717-10.536,10.536v141.169 c0,5.818,4.716,10.536,10.536,10.536h162.239c5.82,0,10.536-4.717,10.536-10.536V265.482 C347.651,259.664,342.935,254.946,337.115,254.946z M185.412,322.682h60.048v26.773h-60.048V322.682z M266.531,322.682h60.048 v26.773h-60.048V322.682z M326.58,301.611h-60.048v-25.593h60.048L326.58,301.611L326.58,301.611z M245.46,276.018v25.592h-60.048 v-25.592H245.46z M185.412,370.526h60.048v25.592h-60.048V370.526z M266.531,396.117v-25.592h60.048v25.592H266.531z"/></symbol>
+<symbol id="drive" viewBox="0 0 512 512"><polygon style="fill:#28B446;" points="165.891,334.343 161.611,419.266 82.713,479.21 0,333.399 172.602,32.79 253.414,88.26 256.078,178.175 255.315,178.614 "/><polygon style="fill:#219B38;" points="172.602,32.79 221.718,237.124 256.078,178.175 253.414,59.814 "/><polygon style="fill:#FFD837;" points="339.385,32.79 512,333.399 418.917,380.477 345.204,333.851 345.204,333.399 256.078,178.175 172.602,32.79 "/><polygon style="fill:#518EF8;" points="512,333.399 429.339,478.266 82.713,479.21 165.891,334.343 345.204,333.851 "/><polygon style="fill:#3A5BBC;" points="82.713,479.21 227.749,334.173 165.891,334.343 "/><polygon style="fill:#FBBB00;" points="512,333.399 322.76,294.31 345.204,333.851 "/></symbol>
+<symbol id="photos" viewBox="0 0 512 512"><polygon style="fill:#D32E2A;" points="385.829,128 385.829,256 347.429,291.072 307.2,256 272.457,241.371 306.59,165.51 "/><polygon style="fill:#3A5BBC;" points="384,385.219 256,385.219 255.39,383.391 226.133,356.291 255.39,308.041 270.629,271.848 355.962,302.043 "/><polygon style="fill:#FBBB00;" points="256.61,128.61 288.305,164.901 256.61,203.959 241.371,240.152 161.524,200.253 128,126.781 256,126.781 "/><polygon style="fill:#28B446;" points="239.543,270.629 204.495,346.843 126.171,384 126.171,256 163.962,232.558 204.8,256 "/><polygon style="fill:#518EF8;" points="512,256 384,385.219 270.629,271.848 307.2,256 385.829,256 "/><polygon style="fill:#91C646;" points="255.39,383.391 255.39,512 126.171,384 239.543,270.629 255.39,307.2 255.39,308.041 "/><polygon style="fill:#FFD837;" points="241.371,240.152 204.8,256 126.171,256 0,256 128,126.781 "/><polygon style="fill:#F14336;" points="385.829,128 272.457,241.371 256.61,204.8 256.61,203.959 256.61,128.61 256.61,0 "/></symbol>
+<symbol id="chrome" width="64" height="64" viewBox="0 0 16.933333 16.933333" version="1.1"><g transform="translate(0 -280.07)"><g transform="matrix(1.1941 0 0 1.1941 21.449 -45.325)"><g transform="matrix(.24253 0 0 .24253 -92.377 154.94)" fill-rule="evenodd"><path d="m317.06 499.65c-2.9744 3.9668-4.7552 8.9642-4.7552 14.326 0 13.159 10.594 23.678 23.753 23.678l8.3134-17.028-15.439-3.1621z" fill="#649af5"/><path d="m337.24 503.21 7.1258 17.339-8.3134 17.102c13.159 0 23.753-10.594 23.753-23.753 0-3.8542-0.9287-7.4763-2.5446-10.689z" fill="#a2c2f8"/><path d="m336.05 490.15c-7.7973 0-14.672 3.7368-18.997 9.5057l11.872 17.81 15.439 3.0878-7.1258-17.339h20.02c-3.901-7.7552-11.903-13.064-21.208-13.064z" fill="#3b6bd4"/></g><path d="m-10.86 276.97c1.478 0 2.6679 1.1899 2.6679 2.6679 0 1.478-1.1899 2.6679-2.6679 2.6679-1.478 0-2.6679-1.1899-2.6679-2.6679 0-1.478 1.1899-2.6679 2.6679-2.6679z" fill="#fff" stroke-width=".24253"/><path d="m-10.86 277.58h3e-6c1.1421 0 2.0615 0.91945 2.0615 2.0616 0 1.1421-0.91945 2.0615-2.0615 2.0615h-3e-6c-1.1421 0-2.0615-0.91945-2.0615-2.0615 0-1.1421 0.91945-2.0616 2.0615-2.0616z" fill="#59f" stroke-width=".24253"/></g></g></symbol>
+<symbol id="music" width="64" height="64" version="1.1" viewBox="0 0 16.933333 16.933333"><g transform="translate(0 -280.07)"><circle cx="8.4667" cy="288.53" r="6.8792" fill="#ff8242" style="paint-order:stroke markers fill"/><circle cx="8.4667" cy="288.53" r="3.7042" opacity=".15" style="paint-order:stroke markers fill"/><ellipse cx="8.4667" cy="288.53" rx="2.1167" ry="1.5875" fill="#fff" style="paint-order:stroke markers fill"/><rect x="10.054" y="283.77" width=".52917" height="4.7625" fill="#fff" style="paint-order:stroke markers fill"/><path d="m10.054 283.77 1.8521-0.52917v1.0583l-1.8521 0.52917z" fill="#fff" style="paint-order:stroke markers fill"/></g></symbol>
+</svg>
 </body>
 </html>
