@@ -64,7 +64,7 @@ app.get('/files', function(request, response) {
                 file.mime = type && type.mime || 'text/plain';
               }
 
-              if (file.mime.match(/(image|video)\//)) {
+              if (file.mime.match(/(image|video)\//) && file.path != thumbroot) {
                 const hash = md5File.sync(file.fullpath);
                 file.thumbnail = `${thumbroot}/${hash}.jpg`;
 
