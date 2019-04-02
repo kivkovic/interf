@@ -3,8 +3,6 @@
 
   <link href="https://fonts.googleapis.com/css?family=Roboto+Mono:300,400,500&amp;subset=latin-ext" rel="stylesheet">
   <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css" integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
-
-  <link href="assets/prism.css" rel="stylesheet" />
   <style type="text/css">
     body {
       margin: 0;
@@ -44,17 +42,21 @@
       padding: 5px;
       text-shadow: 1px 1px 0px #111;
       --box-shadow: 1px 1px 1px -1px rgba(0,0,0,0.8), -1px -1px 1px -1px rgba(0,0,0,0.5);
+      width: calc(100% - 30px);
+      height: calc(50vh - 95px);
+      max-height: calc(50vh - 95px);
+      margin: 10px;
     }
 
     .terminal::-webkit-scrollbar,
-    #navigator::-webkit-scrollbar {
+    .navigator::-webkit-scrollbar {
         width: 10px;
         height: 10px;
         background: #222;
     }
 
     .terminal::-webkit-scrollbar-thumb,
-    #navigator::-webkit-scrollbar-thumb {
+    .navigator::-webkit-scrollbar-thumb {
       background: #444;
     }
 
@@ -82,7 +84,7 @@
       color: #eea;
     }
 
-    #terminal-autocomplete {
+    .terminal-autocomplete {
       position: absolute;
       display: none;
       font-family: 'Roboto Mono', monospace;
@@ -93,7 +95,12 @@
       overflow: hidden;
     }
 
-    #navigator {
+    .navigator {
+      display: none;
+      width: calc(100% - 20px);
+      height: calc(50vh - 25px);
+      max-height: calc(50vh - 25px);
+      margin: 10px;
       position: relative;
       background: #2f2f2f;
       overflow-y: scroll;
@@ -106,20 +113,11 @@
       --box-shadow: 1px 1px 1px -1px rgba(0,0,0,0.8);
     }
 
-    #navigator:focus {
+    .navigator:focus {
       outline: none;
     }
 
-    /* #navigator .file {
-      display: inline-block;
-      width: calc(10% - 10px);
-      min-height: 100px;
-      overflow-wrap: break-word;
-      word-wrap: break-word;
-      margin: 10px;
-    } */
-
-    #navigator .table {
+    .navigator .table {
       width: calc(100% - 2px);
       user-select: none;
       z-index: 190;
@@ -128,7 +126,7 @@
       --box-shadow: -1px 0px 1px -1px rgba(0,0,0,0.4);
     }
 
-    #navigator .cell {
+    .navigator .cell {
       padding: 4px 8px;
       position: relative;
       min-width: 18px;
@@ -136,51 +134,51 @@
       transition: all 0.15s ease-in-out;
     }
 
-    #navigator .row {
+    .navigator .row {
       transition: all 0.15s ease-in-out;
     }
 
-    #navigator .row:hover, #navigator .row.selected {
+    .navigator .row:hover, .navigator .row.selected {
       background-color: #393939;
       --box-shadow: 0 1px 1px -1px rgba(0,0,0,0.4);
     }
 
-    #navigator .row.hidden {
+    .navigator .row.hidden {
       color: #888;
     }
 
-    #navigator .cell:nth-child(1) {
+    .navigator .cell:nth-child(1) {
       width: 10px;
       text-align: center;
     }
 
-    #navigator .cell:nth-child(3) {
+    .navigator .cell:nth-child(3) {
       font-size: 11px;
       width: 120px;
       overflow: hidden;
     }
 
-    #navigator .cell:nth-child(4) {
+    .navigator .cell:nth-child(4) {
       font-size: 10px;
       width: 90px;
       overflow: hidden;
     }
 
-    #navigator .cell:nth-child(5) {
+    .navigator .cell:nth-child(5) {
       font-size: 11px;
       overflow: hidden;
       width: 110px;
     }
 
-    #navigator .cell time {
+    .navigator .cell time {
       font-size: 10px;
     }
 
-    #navigator .cell i {
+    .navigator .cell i {
       font-size: 18px;
     }
 
-    #navigator .navlocation {
+    .navigator .navlocation {
       position: sticky;
       left: 0;
       top: 0;
@@ -196,11 +194,11 @@
       --box-shadow: 1px 1px 1px -1px rgba(0,0,0,0.8);
     }
 
-    #navigator .navlocation:focus {
+    .navigator .navlocation:focus {
       outline: none;
     }
 
-    #navigator .controls {
+    .navigator .controls {
       width: 325px;
       padding-left: 2px;
       position: sticky;
@@ -211,7 +209,7 @@
       background: #333;
     }
 
-    #navigator .controls .control {
+    .navigator .controls .control {
       width: 26px;
       height: 24px;
       display: inline-block;
@@ -223,20 +221,20 @@
       --box-shadow: 1px 1px 1px -1px rgba(0,0,0,0.8);
     }
 
-    #navigator .controls .control:hover {
+    .navigator .controls .control:hover {
       color: #fff;
     }
 
-    #navigator .controls .control i {
+    .navigator .controls .control i {
       font-size: 18px;
       line-height: 24px;
     }
 
-    #navigator .controls .control .fa-chevron-up {
+    .navigator .controls .control .fa-chevron-up {
       top: 1px;
     }
 
-    #navigator .separator {
+    .navigator .separator {
       width: 100%;
       height: 4px;
       position: sticky;
@@ -314,7 +312,7 @@
     .row:hover .fa-file-code       { color: #fff; }
     .row:hover .fa-file-alt        { color: #fff; }
 
-    #contextmenu {
+    .contextmenu {
       position: absolute;
       top: 10px;
       left: 10px;
@@ -336,25 +334,25 @@
       height: 0;
     }
 
-    #contextmenu li {
+    .contextmenu li {
       padding: 4px;
       cursor: pointer;
       transition: all 0.2s ease-in-out;
     }
 
-    #contextmenu li:hover {
+    .contextmenu li:hover {
       background-color: #393939;
       --box-shadow: 0 1px 1px -1px rgba(0,0,0,0.4);
     }
 
-    #contextmenu li i {
+    .contextmenu li i {
       width: 32px;
       text-align: center;
       margin-right: 7px;
       font-size: 16px;
     }
 
-    #contextmenu li svg {
+    .contextmenu li svg {
       width: 24px;
       height: 24px;
       fill: #ddd;
@@ -364,20 +362,26 @@
       margin: -4px 16px -4px 0;
     }
 
-    #contextmenu li.separator, #contextmenu li.separator:hover {
+    .contextmenu li.separator, #contextmenu li.separator:hover {
       background-color: #333;
       box-shadow: none;
     }
 
-    #apps .icon {
+    .apps {
+      width: calc(100% - 20px);
+      height: 80px;
+    }
+
+    .apps .icon {
       display: inline-block;
       width: 64px;
       height: 64px; /* */
       margin: 10px 0 10px 10px;
       transform: perspective(1px) translateZ(0);
+      text-align: center;
     }
 
-    #apps .icon.menu {
+    .apps .icon.menu {
       color: #fff;
       font-size: 36px;
       text-align: center;
@@ -386,7 +390,7 @@
       transition: transform 0.2s ease-in-out;
     }
 
-    #apps .icon.menu i {
+    .apps .icon.menu i {
       position: relative;
       position: relative;
       top: -18px;
@@ -394,43 +398,36 @@
       text-shadow: 1px 1px 2px #000;
     }
 
-    #apps .icon:not(.menu):hover {
+    .apps .icon:not(.menu):hover {
       filter: brightness(120%);
       transition: all 0.07s ease-out;
-      /* animation-name: blurinout;
-      animation-duration: 0.07s;
-      animation-timing-function: ease-in-out;
-      animation-iteration-count: 1; */
     }
 
-    /* #apps:hover .icon:not(:hover):not(.menu) {
-      transform: scale(0.6);
-    } */
-
-    #apps .icon:hover:not(.menu) {
+    .apps .icon:hover:not(.menu) {
       transform: scale(1.20);
     }
 
-    #apps .icon.menu:hover {
+    .apps .icon.menu:hover {
       color: #ddd;
     }
 
-    #apps .icon > svg {
+    .apps .icon > svg {
       width: 100%;
       height: 100%;
     }
 
-    @keyframes hvr-buzz-out {
-      0% { transform: translateX(0) rotate(1deg); }
-      33% { transform: translateX(-1px) rotate(-1deg); }
-      66% { transform: translateX(1px) rotate(0); }
-      100% { transform: translateX(0) rotate(0); }
+    .display-wrapper {
+      display: none;
+      width: calc(100% - 20px);
+      height: calc(50vh - 25px);
+      max-height: calc(50vh - 25px);
+      margin: 10px;
+      overflow-x: hidden;
+      overflow-y: scroll;
     }
 
-    @keyframes blurinout {
-      0% { filter: blur(0); }
-      50% { filter: blur(5px); }
-      100% { filter: blur(0); }
+    .display {
+      width: 100%;
     }
   </style>
 
@@ -446,7 +443,6 @@
     terminal.classList.add('terminal');
 
     const location = document.createElement('span');
-    //terminal.appendChild(location);
     let locationText = '';
 
     const input = document.createElement('input');
@@ -717,8 +713,8 @@
 
   function handleFileOpen(file, type) {
 
-    const display = document.querySelector('#display'); // TODO extract
-    const editor = document.querySelector('#text-editor'); // TODO extract
+    const display = document.querySelector('#display');
+    const editor = document.querySelector('#text-editor');
     display.parentNode.style.display = 'none';
     editor.style.display = 'none';
 
@@ -812,9 +808,7 @@
 
         return `<span style="${style}">`;
       }))
-      //.replace(/^\x1B\d{0,2}\??\d{0,2}h/)
-      //.replace(/^(\?\d{1,2}h)+/g)
-      .replace(/\x1B\[?./g, '') // replace remaining bash escape sequences
+      .replace(/\x1B\[?./g, '');
   }
 
   function initNavigator(filenavigator, contextmenu) {
@@ -1179,17 +1173,16 @@
   </script>
 </head>
 <body>
-  <div id="apps" style="width: calc(100% - 20px); height: 80px;"></div>
-  <div id="navigator" tabIndex="10" style="display: none; width: calc(100% - 20px); height: calc(50vh - 25px); max-height: calc(50vh - 25px); margin: 10px;"></div>
-  <ul id="contextmenu"></ul>
-  <div id="terminal" tabindex="0" style="width: calc(100% - 30px); height: calc(50vh - 95px); max-height: calc(50vh - 95px); margin: 10px;">
+  <div id="apps" class="apps"></div>
+  <div id="navigator" class="navigator" tabIndex="10"></div>
+  <ul id="contextmenu" class="contextmenu"></ul>
+  <div id="terminal" class="terminal" tabindex="0">
   </div>
-  <select multiple id="terminal-autocomplete"></select>
-  <div style="display: none; width: calc(100% - 20px); height: calc(50vh - 25px); max-height: calc(50vh - 25px); margin: 10px; overflow-x: hidden; overflow-y: scroll;">
-    <div id="display" style="width: 100%;"></div>
+  <select multiple id="terminal-autocomplete" class="terminal-autocomplete"></select>
+  <div class="display-wrapper">
+    <div id="display" class="display"></div>
   </div>
-  <div id="text-editor" style="display: none; width: calc(100% - 20px); height: calc(50vh - 25px); max-height: calc(50vh - 25px); margin: 10px;"></div>
-  <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+<svg style="width: 64px; height: 64px;" xmlns="http://www.w3.org/2000/svg" style="display: none;">
 <symbol id="mail" width="64" height="64" version="1.1" viewBox="0 0 16.933333 16.933333"><g transform="translate(0 -280.07)"><path d="m2.3813 284.83h12.171c0.43974 0 0.79376 0.35402 0.79376 0.79376v8.4666c0 0.43974-0.35402 0.79376-0.79376 0.79376h-12.171c-0.43974 0-0.79376-0.35402-0.79376-0.79376v-8.4666c0-0.43974 0.35402-0.79376 0.79376-0.79376z" fill="#9f3129" style="paint-order:markers stroke fill"/><rect x="2.6458" y="282.18" width="11.642" height="8.9958" ry=".79376" fill="#fff" stroke="#000" stroke-opacity=".058824" stroke-width=".26458" style="paint-order:markers stroke fill"/><path d="m15.181 285.14c0.10189 0.13347 0.16485 0.29844 0.16485 0.48007v8.4667c0 0.43974-0.35401 0.79375-0.79375 0.79375h-12.171c-0.20513 0-0.38961-0.0794-0.5302-0.20619z" fill="#f4685c" style="paint-order:markers stroke fill"/><path d="m1.7523 285.14c-0.10189 0.13347-0.16485 0.29844-0.16485 0.48007v8.4667c0 0.43974 0.35401 0.79375 0.79375 0.79375h12.171c0.20513 0 0.38961-0.0794 0.5302-0.20619z" fill="#ff7a6e" style="paint-order:markers stroke fill"/></g></symbol>
 <symbol id="docs" viewBox="0 0 512 512"><path style="fill:#518EF8;" d="M441.412,140.235v338.781c0,18.219-14.778,32.983-32.983,32.983H103.572 c-18.219,0-32.983-14.764-32.983-32.983V32.983C70.588,14.764,85.352,0,103.572,0h197.605L441.412,140.235z"/><g> <rect x="161.18" y="257.054" style="fill:#FFFFFF;" width="189.626" height="21.071"/> <rect x="161.18" y="304.112" style="fill:#FFFFFF;" width="189.626" height="21.071"/> <rect x="161.18" y="351.171" style="fill:#FFFFFF;" width="189.626" height="21.071"/> <rect x="161.18" y="398.23" style="fill:#FFFFFF;" width="134.855" height="21.071"/> </g><polygon style="fill:#3A5BBC;" points="320.31,137.188 441.412,187.079 441.412,140.235 372.751,119.962 "/><path style="fill:#ACD1FC;" d="M441.412,140.235H334.16c-18.22,0-32.983-14.764-32.983-32.983V0L441.412,140.235z"/></symbol>
 <symbol id="calendar" viewBox="0 0 511.999 511.999"><path style="fill:#E6E6E6;" d="M455.617,10.846H56.367c-12.437,0-22.517,10.094-22.517,22.531v74.912h444.296V33.377 C478.147,20.939,468.053,10.846,455.617,10.846z M148.16,55.922c-5.953,0-10.784-4.831-10.784-10.784s4.831-10.784,10.784-10.784 c5.953,0,10.784,4.831,10.784,10.784S154.112,55.922,148.16,55.922z M366.656,55.922c-5.953,0-10.784-4.831-10.784-10.784 s4.831-10.784,10.784-10.784s10.784,4.831,10.784,10.784S372.608,55.922,366.656,55.922z"/><path style="fill:#3A5BBC;" d="M511.505,113.523l-34.077,177.704l13.918,184.793c1.021,13.559-9.706,25.134-23.322,25.134H43.96 c-13.602,0-24.343-11.575-23.322-25.134l13.933-184.793L0.494,113.523C-2.712,96.815,10.099,81.3,27.123,81.3h457.74 C501.901,81.3,514.711,96.815,511.505,113.523z"/><path style="fill:#518EF8;" d="M468.024,501.153H43.96c-13.602,0-24.343-11.575-23.322-25.134l13.933-184.793h244.435h198.423 l13.918,184.793C492.368,489.578,481.641,501.153,468.024,501.153z"/><g> <path style="fill:#FFFFFF;" d="M247.371,244.856c0-34.687-29.026-62.906-64.703-62.906s-64.703,28.219-64.703,62.906h21.568 c0-22.794,19.351-41.338,43.136-41.338s43.136,18.544,43.136,41.338s-19.351,41.338-43.136,41.338h-20.13v21.568h20.13 c23.785,0,43.136,18.544,43.136,41.338c0,22.794-19.351,41.338-43.136,41.338s-43.136-18.544-43.136-41.338h-21.568 c0,34.687,29.026,62.906,64.703,62.906s64.703-28.219,64.703-62.906c0-21.663-11.322-40.802-28.513-52.122 C236.05,285.659,247.371,266.519,247.371,244.856z"/> <polygon style="fill:#FFFFFF;" points="289.289,218.704 300.353,237.218 342.989,211.741 342.989,401.222 364.556,401.222 364.556,173.728 "/> </g></symbol>
@@ -1200,7 +1193,7 @@
 <symbol id="music" width="64" height="64" version="1.1" viewBox="0 0 16.933333 16.933333"><g transform="translate(0 -280.07)"><circle cx="8.4667" cy="288.53" r="6.8792" fill="#ff8242" style="paint-order:stroke markers fill"/><circle cx="8.4667" cy="288.53" r="3.7042" opacity=".15" style="paint-order:stroke markers fill"/><ellipse cx="8.4667" cy="288.53" rx="2.1167" ry="1.5875" fill="#fff" style="paint-order:stroke markers fill"/><rect x="10.054" y="283.77" width=".52917" height="4.7625" fill="#fff" style="paint-order:stroke markers fill"/><path d="m10.054 283.77 1.8521-0.52917v1.0583l-1.8521 0.52917z" fill="#fff" style="paint-order:stroke markers fill"/></g></symbol>
 <symbol id="unarchive" width="24" height="24" viewBox="0 0 24 24"><defs><path id="a" d="M0 0h24v24H0V0z"/></defs><clipPath id="b"><use xlink:href="#a" overflow="visible"/></clipPath><path clip-path="url(#b)" d="M20.55 5.22l-1.39-1.68C18.88 3.21 18.47 3 18 3H6c-.47 0-.88.21-1.15.55L3.46 5.22C3.17 5.57 3 6.01 3 6.5V19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6.5c0-.49-.17-.93-.45-1.28zM12 9.5l5.5 5.5H14v2h-4v-2H6.5L12 9.5zM5.12 5l.82-1h12l.93 1H5.12z"/></symbol>
 <symbol id="archive" width="24" height="24" viewBox="0 0 24 24"><path d="M20.54 5.23l-1.39-1.68C18.88 3.21 18.47 3 18 3H6c-.47 0-.88.21-1.16.55L3.46 5.23C3.17 5.57 3 6.02 3 6.5V19c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6.5c0-.48-.17-.93-.46-1.27zM12 17.5L6.5 12H10v-2h4v2h3.5L12 17.5zM5.12 5l.81-1h12l.94 1H5.12z"/><path d="M0 0h24v24H0z" fill="none"/></symbol>
-<symbol id="sublime" xmlns="http://www.w3.org/2000/svg" width="448" height="448" viewBox="0 0 448 448"><g fill="none" fill-rule="evenodd"><rect width="448" height="448" fill="#444444" fill-rule="nonzero" rx="28"/><path fill="#F48E00" d="M352,225.117193 C352,221.218498 349.1196,218.970345 345.584887,220.087307 L102.415113,297.221712 C98.873288,298.345788 96,302.422344 96,306.313924 L96,385.148673 C96,389.047368 98.873288,391.302635 102.415113,390.178559 L345.584887,313.051268 C349.1196,311.927192 352,307.850636 352,303.951941 L352,225.117193 L352,225.117193 Z"/><path fill="#FF9800" d="M96,223.042442 C96,226.940903 98.8728889,231.017214 102.414222,232.141222 L345.585778,309.278106 C349.127111,310.402114 352,308.146983 352,304.255636 L352,225.418512 C352,221.527165 349.127111,217.450854 345.585778,216.326845 L102.414222,139.189962 C98.8728889,138.065953 96,140.313971 96,144.212432 L96,223.042442 Z"/><path fill="#FF9800" d="M352,63.3188598 C352,59.4201646 349.1196,57.1648974 345.584887,58.2889738 L102.415113,135.416264 C98.873288,136.540341 96,140.616896 96,144.515591 L96,223.35034 C96,227.249035 98.873288,229.497188 102.415113,228.380226 L345.584887,151.245821 C349.1196,150.121744 352,146.045189 352,142.153608 L352,63.3188598 Z"/></g></symbol>
+<symbol id="sublime" xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 448 448"><g fill="none" fill-rule="evenodd"><rect width="448" height="448" fill="#444444" fill-rule="nonzero" rx="28"/><path fill="#F48E00" d="M352,225.117193 C352,221.218498 349.1196,218.970345 345.584887,220.087307 L102.415113,297.221712 C98.873288,298.345788 96,302.422344 96,306.313924 L96,385.148673 C96,389.047368 98.873288,391.302635 102.415113,390.178559 L345.584887,313.051268 C349.1196,311.927192 352,307.850636 352,303.951941 L352,225.117193 L352,225.117193 Z"/><path fill="#FF9800" d="M96,223.042442 C96,226.940903 98.8728889,231.017214 102.414222,232.141222 L345.585778,309.278106 C349.127111,310.402114 352,308.146983 352,304.255636 L352,225.418512 C352,221.527165 349.127111,217.450854 345.585778,216.326845 L102.414222,139.189962 C98.8728889,138.065953 96,140.313971 96,144.212432 L96,223.042442 Z"/><path fill="#FF9800" d="M352,63.3188598 C352,59.4201646 349.1196,57.1648974 345.584887,58.2889738 L102.415113,135.416264 C98.873288,136.540341 96,140.616896 96,144.515591 L96,223.35034 C96,227.249035 98.873288,229.497188 102.415113,228.380226 L345.584887,151.245821 C349.1196,150.121744 352,146.045189 352,142.153608 L352,63.3188598 Z"/></g></symbol>
 </svg>
 </body>
 </html>
