@@ -16,7 +16,7 @@
     .terminal-input {
       font-family: 'Roboto Mono', monospace;
       font-weight: 300;
-      font-size: 12px;
+      font-size: 14px;
       color: #eee;
       border: 1px solid transparent;
       background-color: #2a2a2a;
@@ -36,14 +36,14 @@
     .terminal {
       font-family: 'Roboto Mono', monospace;
       font-weight: 300;
-      font-size: 12px;
+      font-size: 14px;
       color: #eee;
       background-color: #2a2a2a;
       overflow-y: scroll;
       overflow-x: auto;
       padding: 5px;
       text-shadow: 1px 1px 0px #111;
-      box-shadow: 1px 1px 1px -1px rgba(0,0,0,0.8), -1px -1px 1px -1px rgba(0,0,0,0.5);
+      --box-shadow: 1px 1px 1px -1px rgba(0,0,0,0.8), -1px -1px 1px -1px rgba(0,0,0,0.5);
     }
 
     .terminal::-webkit-scrollbar,
@@ -65,7 +65,7 @@
     }
 
     .stdout {
-      color: #efd;
+      color: #fefffd;
     }
 
     .stdout:focus {
@@ -87,7 +87,7 @@
       display: none;
       font-family: 'Roboto Mono', monospace;
       font-weight: 300;
-      font-size: 12px;
+      font-size: 14px;
       color: #eee;
       background-color: #333;
       overflow: hidden;
@@ -100,10 +100,10 @@
       overflow-x: auto;
       font-family: 'Roboto Mono', monospace;
       font-weight: 300;
-      font-size: 12px;
+      font-size: 14px;
       color: #ccc;
       text-shadow: 1px 1px 0px #111;
-      box-shadow: 1px 1px 1px -1px rgba(0,0,0,0.8);
+      --box-shadow: 1px 1px 1px -1px rgba(0,0,0,0.8);
     }
 
     #navigator:focus {
@@ -122,10 +122,10 @@
     #navigator .table {
       width: calc(100% - 2px);
       user-select: none;
-      box-shadow: -1px 0px 1px -1px rgba(0,0,0,0.4);
       z-index: 190;
       position: relative;
       left: 2px;
+      --box-shadow: -1px 0px 1px -1px rgba(0,0,0,0.4);
     }
 
     #navigator .cell {
@@ -142,7 +142,7 @@
 
     #navigator .row:hover, #navigator .row.selected {
       background-color: #393939;
-      box-shadow: 0 1px 1px -1px rgba(0,0,0,0.4);
+      --box-shadow: 0 1px 1px -1px rgba(0,0,0,0.4);
     }
 
     #navigator .row.hidden {
@@ -184,16 +184,16 @@
       position: sticky;
       left: 0;
       top: 0;
-      width: calc(100% - 284px);
+      width: calc(100% - 327px);
       background: #2b2b2b;
       border: none;
       color: #aaa;
       font-family: 'Roboto Mono', monospace;
       font-weight: 300;
-      font-size: 12px;
+      font-size: 14px;
       padding: 4px;
       z-index: 210;
-      box-shadow: 1px 1px 1px -1px rgba(0,0,0,0.8);
+      --box-shadow: 1px 1px 1px -1px rgba(0,0,0,0.8);
     }
 
     #navigator .navlocation:focus {
@@ -201,7 +201,7 @@
     }
 
     #navigator .controls {
-      width: 282px;
+      width: 325px;
       padding-left: 2px;
       position: sticky;
       float: right;
@@ -212,26 +212,28 @@
     }
 
     #navigator .controls .control {
-      width: 24px;
+      width: 26px;
       height: 24px;
       display: inline-block;
       text-align: center;
-      margin: 0 2px;
-      background: #2a2a2a;
+      margin: 0 5px;
+      background: #333;
       cursor: pointer;
-      box-shadow: 1px 1px 1px -1px rgba(0,0,0,0.8);
       z-index: 250;
+      --box-shadow: 1px 1px 1px -1px rgba(0,0,0,0.8);
     }
 
     #navigator .controls .control:hover {
-      background: #222;
       color: #fff;
     }
 
     #navigator .controls .control i {
-      position: relative;
-      top: 3px;
       font-size: 18px;
+      line-height: 24px;
+    }
+
+    #navigator .controls .control .fa-chevron-up {
+      top: 1px;
     }
 
     #navigator .separator {
@@ -241,7 +243,7 @@
       top: 24px;
       background: #333;
       z-index: 200;
-      box-shadow: 1px 1px 1px -1px rgba(0,0,0,0.8);
+      --box-shadow: 1px 1px 1px -1px rgba(0,0,0,0.8);
     }
 
     .thumbnail {
@@ -320,10 +322,9 @@
       margin: 0;
       padding: 0;
       background: #333;
-      box-shadow: 1px 1px 2px -2px #000;
       min-width: 160px;
       z-index: 4000;
-      transition: height 0.09s ease-out;
+      transition: height 0.07s ease-out;
       overflow: hidden;
       font-family: 'Roboto Mono', monospace;
       font-weight: 300;
@@ -343,13 +344,29 @@
 
     #contextmenu li:hover {
       background-color: #393939;
-      box-shadow: 0 1px 1px -1px rgba(0,0,0,0.4);
+      --box-shadow: 0 1px 1px -1px rgba(0,0,0,0.4);
     }
 
     #contextmenu li i {
       width: 32px;
-      margin-left: 7px;
+      text-align: center;
+      margin-right: 7px;
       font-size: 16px;
+    }
+
+    #contextmenu li svg {
+      width: 24px;
+      height: 24px;
+      fill: #ddd;
+      position: relative;
+      top: 2px;
+      left: 4px;
+      margin: -4px 16px -4px 0;
+    }
+
+    #contextmenu li.separator, #contextmenu li.separator:hover {
+      background-color: #333;
+      box-shadow: none;
     }
 
     #apps .icon {
@@ -379,10 +396,19 @@
 
     #apps .icon:not(.menu):hover {
       filter: brightness(120%);
-      animation-name: hvr-buzz-out;
-      animation-duration: 0.25s;
-      animation-timing-function: linear;
-      animation-iteration-count: 1;
+      transition: all 0.07s ease-out;
+      /* animation-name: blurinout;
+      animation-duration: 0.07s;
+      animation-timing-function: ease-in-out;
+      animation-iteration-count: 1; */
+    }
+
+    /* #apps:hover .icon:not(:hover):not(.menu) {
+      transform: scale(0.6);
+    } */
+
+    #apps .icon:hover:not(.menu) {
+      transform: scale(1.20);
     }
 
     #apps .icon.menu:hover {
@@ -395,18 +421,16 @@
     }
 
     @keyframes hvr-buzz-out {
-      0% {
-        transform: translateX(0) rotate(1deg);
-      }
-      33% {
-        transform: translateX(-1px) rotate(-1deg);
-      }
-      66% {
-        transform: translateX(1px) rotate(0);
-      }
-      100% {
-        transform: translateX(0) rotate(0);
-      }
+      0% { transform: translateX(0) rotate(1deg); }
+      33% { transform: translateX(-1px) rotate(-1deg); }
+      66% { transform: translateX(1px) rotate(0); }
+      100% { transform: translateX(0) rotate(0); }
+    }
+
+    @keyframes blurinout {
+      0% { filter: blur(0); }
+      50% { filter: blur(5px); }
+      100% { filter: blur(0); }
     }
   </style>
 
