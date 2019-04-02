@@ -589,7 +589,8 @@
 
       terminal.appendChild(clone);
       terminal.appendChild(input);
-      input.style.width = `calc(100% - ${Math.max(input.offsetLeft, 200)}px)`;
+      //debugger;
+      input.style.width = `calc(100% - ${clone.innerText.length * 9.4 + 10}px)`;
       input.style.display = '';
       input.focus();
       terminal.scrollTop = terminal.scrollHeight;
@@ -926,23 +927,28 @@
         contextmenu.innerHTML = '';
         contextmenu.className = 'contextmenu';
 
-        table.onclick = () => contextmenu.style.height = '0';
+        table.onclick = (e) => contextmenu.style.height = '0';
 
         contextmenu.append(createContextControl('search', 'fas fa-search', focusSearchInput));
+        contextmenu.append(createContextControl(false));
         contextmenu.append(createContextControl('new folder', 'fas fa-folder-plus', newfolder));
         contextmenu.append(createContextControl('new file', 'fas fa-file-medical', newfile));
+        contextmenu.append(createContextControl(false));
 
         for (let def of [{ ref: controls, fn: createControl }, { ref: contextmenu, fn: createContextControl }]) {
           def.ref.append(def.fn('navigate up', 'fas fa-chevron-up', navup));
           def.ref.append(def.fn('home', 'fas fa-home', home));
+          def.ref.append(def.fn('terminal here', 'fas fa-terminal', terminalhere, 'font-size: 16px; line-height: 19px;'));
+          if (def.ref == contextmenu) contextmenu.append(createContextControl(false));
           def.ref.append(def.fn('cut', 'fas fa-cut', cut));
           def.ref.append(def.fn('copy', 'fas fa-copy', copy));
           def.ref.append(def.fn('paste', 'fas fa-paste', paste));
-          def.ref.append(def.fn('rename', 'fas fa-i-cursor', rename));
           def.ref.append(def.fn('delete', 'fas fa-trash', del));
-          def.ref.append(def.fn('archive', 'fas fa-file-archive', archive));
+          if (def.ref == contextmenu) contextmenu.append(createContextControl(false));
+          def.ref.append(def.fn('rename', 'fas fa-i-cursor', rename));
+          if (def.ref == contextmenu) def.ref.append(def.fn('archive', '', archive, null, '<svg><use xlink:href="#archive" /></svg>Archive'));
+          if (def.ref == contextmenu) def.ref.append(def.fn('unarchive', '', archive, null, '<svg><use xlink:href="#unarchive" /></svg>Unarchive'));
           def.ref.append(def.fn('share', 'fas fa-share-alt', share));
-          def.ref.append(def.fn('terminal here', 'fas fa-terminal', terminalhere, 'font-size: 16px; line-height: 19px;'));
         }
 
         filenavigator.append(controls);
@@ -1142,6 +1148,7 @@
       { name: 'music' },
       { name: 'drive' },
       { name: 'photos' },
+      { name: 'sublime' },
       { name: 'docs' },
       { name: 'sheets' },
       { name: 'calendar' },
@@ -1191,6 +1198,9 @@
 <symbol id="photos" viewBox="0 0 512 512"><polygon style="fill:#D32E2A;" points="385.829,128 385.829,256 347.429,291.072 307.2,256 272.457,241.371 306.59,165.51 "/><polygon style="fill:#3A5BBC;" points="384,385.219 256,385.219 255.39,383.391 226.133,356.291 255.39,308.041 270.629,271.848 355.962,302.043 "/><polygon style="fill:#FBBB00;" points="256.61,128.61 288.305,164.901 256.61,203.959 241.371,240.152 161.524,200.253 128,126.781 256,126.781 "/><polygon style="fill:#28B446;" points="239.543,270.629 204.495,346.843 126.171,384 126.171,256 163.962,232.558 204.8,256 "/><polygon style="fill:#518EF8;" points="512,256 384,385.219 270.629,271.848 307.2,256 385.829,256 "/><polygon style="fill:#91C646;" points="255.39,383.391 255.39,512 126.171,384 239.543,270.629 255.39,307.2 255.39,308.041 "/><polygon style="fill:#FFD837;" points="241.371,240.152 204.8,256 126.171,256 0,256 128,126.781 "/><polygon style="fill:#F14336;" points="385.829,128 272.457,241.371 256.61,204.8 256.61,203.959 256.61,128.61 256.61,0 "/></symbol>
 <symbol id="chrome" width="64" height="64" viewBox="0 0 16.933333 16.933333" version="1.1"><g transform="translate(0 -280.07)"><g transform="matrix(1.1941 0 0 1.1941 21.449 -45.325)"><g transform="matrix(.24253 0 0 .24253 -92.377 154.94)" fill-rule="evenodd"><path d="m317.06 499.65c-2.9744 3.9668-4.7552 8.9642-4.7552 14.326 0 13.159 10.594 23.678 23.753 23.678l8.3134-17.028-15.439-3.1621z" fill="#649af5"/><path d="m337.24 503.21 7.1258 17.339-8.3134 17.102c13.159 0 23.753-10.594 23.753-23.753 0-3.8542-0.9287-7.4763-2.5446-10.689z" fill="#a2c2f8"/><path d="m336.05 490.15c-7.7973 0-14.672 3.7368-18.997 9.5057l11.872 17.81 15.439 3.0878-7.1258-17.339h20.02c-3.901-7.7552-11.903-13.064-21.208-13.064z" fill="#3b6bd4"/></g><path d="m-10.86 276.97c1.478 0 2.6679 1.1899 2.6679 2.6679 0 1.478-1.1899 2.6679-2.6679 2.6679-1.478 0-2.6679-1.1899-2.6679-2.6679 0-1.478 1.1899-2.6679 2.6679-2.6679z" fill="#fff" stroke-width=".24253"/><path d="m-10.86 277.58h3e-6c1.1421 0 2.0615 0.91945 2.0615 2.0616 0 1.1421-0.91945 2.0615-2.0615 2.0615h-3e-6c-1.1421 0-2.0615-0.91945-2.0615-2.0615 0-1.1421 0.91945-2.0616 2.0615-2.0616z" fill="#59f" stroke-width=".24253"/></g></g></symbol>
 <symbol id="music" width="64" height="64" version="1.1" viewBox="0 0 16.933333 16.933333"><g transform="translate(0 -280.07)"><circle cx="8.4667" cy="288.53" r="6.8792" fill="#ff8242" style="paint-order:stroke markers fill"/><circle cx="8.4667" cy="288.53" r="3.7042" opacity=".15" style="paint-order:stroke markers fill"/><ellipse cx="8.4667" cy="288.53" rx="2.1167" ry="1.5875" fill="#fff" style="paint-order:stroke markers fill"/><rect x="10.054" y="283.77" width=".52917" height="4.7625" fill="#fff" style="paint-order:stroke markers fill"/><path d="m10.054 283.77 1.8521-0.52917v1.0583l-1.8521 0.52917z" fill="#fff" style="paint-order:stroke markers fill"/></g></symbol>
+<symbol id="unarchive" width="24" height="24" viewBox="0 0 24 24"><defs><path id="a" d="M0 0h24v24H0V0z"/></defs><clipPath id="b"><use xlink:href="#a" overflow="visible"/></clipPath><path clip-path="url(#b)" d="M20.55 5.22l-1.39-1.68C18.88 3.21 18.47 3 18 3H6c-.47 0-.88.21-1.15.55L3.46 5.22C3.17 5.57 3 6.01 3 6.5V19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6.5c0-.49-.17-.93-.45-1.28zM12 9.5l5.5 5.5H14v2h-4v-2H6.5L12 9.5zM5.12 5l.82-1h12l.93 1H5.12z"/></symbol>
+<symbol id="archive" width="24" height="24" viewBox="0 0 24 24"><path d="M20.54 5.23l-1.39-1.68C18.88 3.21 18.47 3 18 3H6c-.47 0-.88.21-1.16.55L3.46 5.23C3.17 5.57 3 6.02 3 6.5V19c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6.5c0-.48-.17-.93-.46-1.27zM12 17.5L6.5 12H10v-2h4v2h3.5L12 17.5zM5.12 5l.81-1h12l.94 1H5.12z"/><path d="M0 0h24v24H0z" fill="none"/></symbol>
+<symbol id="sublime" xmlns="http://www.w3.org/2000/svg" width="448" height="448" viewBox="0 0 448 448"><g fill="none" fill-rule="evenodd"><rect width="448" height="448" fill="#444444" fill-rule="nonzero" rx="28"/><path fill="#F48E00" d="M352,225.117193 C352,221.218498 349.1196,218.970345 345.584887,220.087307 L102.415113,297.221712 C98.873288,298.345788 96,302.422344 96,306.313924 L96,385.148673 C96,389.047368 98.873288,391.302635 102.415113,390.178559 L345.584887,313.051268 C349.1196,311.927192 352,307.850636 352,303.951941 L352,225.117193 L352,225.117193 Z"/><path fill="#FF9800" d="M96,223.042442 C96,226.940903 98.8728889,231.017214 102.414222,232.141222 L345.585778,309.278106 C349.127111,310.402114 352,308.146983 352,304.255636 L352,225.418512 C352,221.527165 349.127111,217.450854 345.585778,216.326845 L102.414222,139.189962 C98.8728889,138.065953 96,140.313971 96,144.212432 L96,223.042442 Z"/><path fill="#FF9800" d="M352,63.3188598 C352,59.4201646 349.1196,57.1648974 345.584887,58.2889738 L102.415113,135.416264 C98.873288,136.540341 96,140.616896 96,144.515591 L96,223.35034 C96,227.249035 98.873288,229.497188 102.415113,228.380226 L345.584887,151.245821 C349.1196,150.121744 352,146.045189 352,142.153608 L352,63.3188598 Z"/></g></symbol>
 </svg>
 </body>
 </html>
