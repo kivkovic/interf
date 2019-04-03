@@ -465,8 +465,8 @@ function initNavigator(filenavigator, contextmenu) {
       const paste = () => console.log('RENAME', selection);
       const rename = () => console.log('DELETE', selection);
       const del = () => console.log('ARCHIVE', selection);
-      const archive = () => console.log('SHARE', selection);
-      const share = () => console.log('TERMINAL HERE', selection);
+      const archive = () => console.log('SEND', selection);
+      const send = () => console.log('TERMINAL HERE', selection);
       const terminalhere = () => {
         if (copyClipboard.length) console.log('copy-pasting', copyClipboard);
         if (cutClipboard.length) console.log('cut-pasting', cutClipboard);
@@ -477,6 +477,9 @@ function initNavigator(filenavigator, contextmenu) {
       const focusSearchInput = () => console.log('focusSearchInput');
       const newfolder = () => console.log('newfolder');
       const newfile  = () => console.log('newfile ');
+      const toggleHidden = () => {
+        Array.from(table.querySelectorAll('.hidden')).map(row => row.style.display = (row.style.display != 'table-row' ? 'table-row' : 'none'));
+      };
 
       const controls = document.createElement('div');
       controls.className = 'controls';
@@ -505,7 +508,9 @@ function initNavigator(filenavigator, contextmenu) {
         def.ref.append(def.fn('rename', 'fas fa-i-cursor', rename));
         if (def.ref == contextmenu) def.ref.append(def.fn('archive', '', archive, null, '<svg><use xlink:href="#archive" /></svg>Archive'));
         if (def.ref == contextmenu) def.ref.append(def.fn('unarchive', '', archive, null, '<svg><use xlink:href="#unarchive" /></svg>Unarchive'));
-        def.ref.append(def.fn('share', 'fas fa-share-alt', share));
+        def.ref.append(def.fn('send', 'fas fa-paper-plane', send));
+        if (def.ref == contextmenu) contextmenu.append(createContextControl(false));
+        def.ref.append(def.fn('show hidden files', 'fas fa-eye-slash', toggleHidden));
       }
 
       filenavigator.append(controls);
@@ -704,7 +709,6 @@ function initApps(approw) {
     { name: 'mail' },
     { name: 'music' },
     { name: 'drive' },
-    { name: 'photos' },
     { name: 'sublime' },
     { name: 'docs' },
     { name: 'sheets' },
@@ -722,7 +726,7 @@ function initApps(approw) {
       icon.innerHTML = '<i class="fas fa-bars"></i>';
     } else {
       icon.style.width = `calc(${100 / (apps.length)}% - 15px)`;
-      icon.innerHTML = `<svg><use xlink:href="#${app.name}" /></svg>`;
+      icon.innerHTML = `<svg style="max-width: 64px;"><use xlink:href="#${app.name}" /></svg>`;
     }
     approw.appendChild(icon);
   });
